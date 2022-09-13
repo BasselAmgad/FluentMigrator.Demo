@@ -13,7 +13,7 @@ namespace FluentMigrator.Demo.Extensions
                 var migrationService = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
                 try
                 {
-                    databaseService.CreateDatabase("DapperMigrationExample");
+                    databaseService.CreateDatabase("HomeRecipes");
                     migrationService.ListMigrations();
                     migrationService.MigrateUp();
                 }
