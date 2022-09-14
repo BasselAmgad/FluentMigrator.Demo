@@ -8,12 +8,14 @@
             Delete.Table("Recipes");
             Delete.Table("Categories");
             Delete.Table("Users");
+            Delete.Table("RecipeCategoryDictionary");
         }
         public override void Up()
         {
-            Create.Table("Recipe")
+            Create.Table("Recipes")
                 .WithColumn("Id").AsGuid().NotNullable().PrimaryKey()
                 .WithColumn("Title").AsString().NotNullable()
+                .WithColumn("Ingredients").AsString().NotNullable()
                 .WithColumn("Instructions").AsString().NotNullable();
             Create.Table("Categories")
                 .WithColumn("Name").AsString(30).PrimaryKey();

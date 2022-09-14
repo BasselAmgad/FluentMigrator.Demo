@@ -1,9 +1,9 @@
-﻿using FluentMigrator.Demo.Entities;
+﻿using HomeRecipes.EntityClasses;
 
 namespace FluentMigrator.Demo.Migrations
 {
     [Migration(2)]
-    public class InitialSeed_202106280002 : Migration
+    public class _002_InitialSeed : Migration
     {
         public override void Down()
         {
@@ -27,7 +27,7 @@ namespace FluentMigrator.Demo.Migrations
         }
         public override void Up()
         {
-            /*Insert.IntoTable("Companies")
+            /*Insert.IntoTable("Recipes")
                 .Row(new Company
                 {
                     Id = new Guid("67fbac34-1ee1-4697-b916-1748861dd275"),
