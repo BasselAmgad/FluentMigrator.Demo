@@ -13,7 +13,8 @@ namespace FluentMigrator.Demo.Migrations
         public override void Up()
         {
             Create.Table(TableName.Categories)
-                .WithColumn("name").AsString(30).PrimaryKey()
+                .WithColumn("id").AsGuid().NotNullable().PrimaryKey()
+                .WithColumn("name").AsString(30)
                 .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true); ;
         }
     }
