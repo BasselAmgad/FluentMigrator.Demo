@@ -14,8 +14,8 @@ namespace FluentMigrator.Demo.Migrations
         {
             Create.Table(TableName.RecipeCategory)
                 .WithColumn("id").AsInt32().PrimaryKey().Identity()
-                .WithColumn("recipe_id").AsInt32().NotNullable().ForeignKey(TableName.Recipes, "Id")
-                .WithColumn("category_id").AsInt32().NotNullable().ForeignKey(TableName.Categories, "Id")
+                .WithColumn("recipe_id").AsGuid().NotNullable().ForeignKey(TableName.Recipes, "id")
+                .WithColumn("category_id").AsGuid().NotNullable().ForeignKey(TableName.Categories, "id")
                 .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true);
         }
     }
