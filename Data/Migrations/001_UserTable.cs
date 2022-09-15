@@ -12,7 +12,8 @@ namespace FluentMigrator.Demo.Migrations
         public override void Up()
         {
             Create.Table(TableName.Users)
-                .WithColumn("username").AsString().PrimaryKey()
+                .WithColumn("id").AsGuid().NotNullable().PrimaryKey()
+                .WithColumn("username").AsString().NotNullable()
                 .WithColumn("password").AsString().NotNullable()
                 .WithColumn("refreshToken").AsString()
                 .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true); ;
