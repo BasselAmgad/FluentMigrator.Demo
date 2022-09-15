@@ -11,6 +11,18 @@ namespace HomeRecipesCode
 {
 
 
+	/// <summary>Enum definition for all the entity types defined in this namespace. Used by the entityfields factory.</summary>
+	public enum EntityType
+	{
+		///<summary>Category</summary>
+		CategoryEntity,
+		///<summary>Recipe</summary>
+		RecipeEntity,
+		///<summary>RecipeCategory</summary>
+		RecipeCategoryEntity,
+		///<summary>User</summary>
+		UserEntity
+	}
 
 
 
@@ -18,10 +30,5 @@ namespace HomeRecipesCode
 	// __LLBLGENPRO_USER_CODE_REGION_END
 
 
-}
-
-// empty namespace declarations
-namespace HomeRecipesCode.EntityClasses
-{
 }
 

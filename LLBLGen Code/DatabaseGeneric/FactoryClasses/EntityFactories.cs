@@ -18,7 +18,153 @@ namespace HomeRecipesCode.FactoryClasses
 	// __LLBLGENPRO_USER_CODE_REGION_END
 
 
+	/// <summary>general base class for the generated factories</summary>
+	[Serializable]
+	public partial class EntityFactoryBase2<TEntity> : EntityFactoryCore2
+		where TEntity : EntityBase2, IEntity2
+	{
+		private readonly bool _isInHierarchy;
 
+		/// <summary>CTor</summary>
+		/// <param name="entityName">Name of the entity.</param>
+		/// <param name="typeOfEntity">The type of entity.</param>
+		/// <param name="isInHierarchy">If true, the entity of this factory is in an inheritance hierarchy, false otherwise</param>
+		public EntityFactoryBase2(string entityName, HomeRecipesCode.EntityType typeOfEntity, bool isInHierarchy) : base(entityName, (int)typeOfEntity)
+		{
+			_isInHierarchy = isInHierarchy;
+		}
+		
+		/// <inheritdoc/>
+		public override IEntityFields2 CreateFields() { return ModelInfoProviderSingleton.GetInstance().GetEntityFields(this.ForEntityName); }
+		
+		/// <inheritdoc/>
+		public override IEntity2 CreateEntityFromEntityTypeValue(int entityTypeValue) {	return GeneralEntityFactory.Create((HomeRecipesCode.EntityType)entityTypeValue); }
+
+		/// <inheritdoc/>
+		public override IRelationCollection CreateHierarchyRelations(string objectAlias) { return ModelInfoProviderSingleton.GetInstance().GetHierarchyRelations(this.ForEntityName, objectAlias); }
+
+		/// <inheritdoc/>
+		public override IEntityFactory2 GetEntityFactory(object[] fieldValues, Dictionary<string, int> entityFieldStartIndexesPerEntity) 
+		{
+			return (IEntityFactory2)ModelInfoProviderSingleton.GetInstance().GetEntityFactory(this.ForEntityName, fieldValues, entityFieldStartIndexesPerEntity) ?? this;
+		}
+		
+		/// <inheritdoc/>
+		public override IPredicateExpression GetEntityTypeFilter(bool negate, string objectAlias) {	return ModelInfoProviderSingleton.GetInstance().GetEntityTypeFilter(this.ForEntityName, objectAlias, negate);	}
+						
+		/// <inheritdoc/>
+		public override IEntityCollection2 CreateEntityCollection()	{ return new EntityCollection<TEntity>(this); }
+		
+		/// <inheritdoc/>
+		public override IEntityFields2 CreateHierarchyFields() 
+		{
+			return _isInHierarchy ? new EntityFields2(ModelInfoProviderSingleton.GetInstance().GetHierarchyFields(this.ForEntityName), ModelInfoProviderSingleton.GetInstance(), null) : base.CreateHierarchyFields();
+		}
+		
+		/// <inheritdoc/>
+		protected override Type ForEntityType { get { return typeof(TEntity); } }
+	}
+
+	/// <summary>Factory to create new, empty CategoryEntity objects.</summary>
+	[Serializable]
+	public partial class CategoryEntityFactory : EntityFactoryBase2<CategoryEntity> 
+	{
+		/// <summary>CTor</summary>
+		public CategoryEntityFactory() : base("CategoryEntity", HomeRecipesCode.EntityType.CategoryEntity, false) { }
+		/// <inheritdoc/>
+		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new CategoryEntity(fields); }
+	}
+
+	/// <summary>Factory to create new, empty RecipeEntity objects.</summary>
+	[Serializable]
+	public partial class RecipeEntityFactory : EntityFactoryBase2<RecipeEntity> 
+	{
+		/// <summary>CTor</summary>
+		public RecipeEntityFactory() : base("RecipeEntity", HomeRecipesCode.EntityType.RecipeEntity, false) { }
+		/// <inheritdoc/>
+		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new RecipeEntity(fields); }
+	}
+
+	/// <summary>Factory to create new, empty RecipeCategoryEntity objects.</summary>
+	[Serializable]
+	public partial class RecipeCategoryEntityFactory : EntityFactoryBase2<RecipeCategoryEntity> 
+	{
+		/// <summary>CTor</summary>
+		public RecipeCategoryEntityFactory() : base("RecipeCategoryEntity", HomeRecipesCode.EntityType.RecipeCategoryEntity, false) { }
+		/// <inheritdoc/>
+		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new RecipeCategoryEntity(fields); }
+	}
+
+	/// <summary>Factory to create new, empty UserEntity objects.</summary>
+	[Serializable]
+	public partial class UserEntityFactory : EntityFactoryBase2<UserEntity> 
+	{
+		/// <summary>CTor</summary>
+		public UserEntityFactory() : base("UserEntity", HomeRecipesCode.EntityType.UserEntity, false) { }
+		/// <inheritdoc/>
+		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new UserEntity(fields); }
+	}
+
+	/// <summary>Factory to create new, empty Entity objects based on the entity type specified. Uses  entity specific factory objects</summary>
+	[Serializable]
+	public partial class GeneralEntityFactory
+	{
+		/// <summary>Creates a new, empty Entity object of the type specified</summary>
+		/// <param name="entityTypeToCreate">The entity type to create.</param>
+		/// <returns>A new, empty Entity object.</returns>
+		public static IEntity2 Create(HomeRecipesCode.EntityType entityTypeToCreate)
+		{
+			var factoryToUse = EntityFactoryFactory.GetFactory(entityTypeToCreate);
+			IEntity2 toReturn = null;
+			if(factoryToUse != null)
+			{
+				toReturn = factoryToUse.Create();
+			}
+			return toReturn;
+		}		
+	}
+		
+	/// <summary>Class which is used to obtain the entity factory based on the .NET type of the entity. </summary>
+	[Serializable]
+	public static class EntityFactoryFactory
+	{
+		private static Dictionary<Type, IEntityFactory2> _factoryPerType = new Dictionary<Type, IEntityFactory2>();
+
+		/// <summary>Initializes the <see cref="EntityFactoryFactory"/> class.</summary>
+		static EntityFactoryFactory()
+		{
+			foreach(int entityTypeValue in Enum.GetValues(typeof(HomeRecipesCode.EntityType)))
+			{
+				var factory = GetFactory((HomeRecipesCode.EntityType)entityTypeValue);
+				_factoryPerType.Add(factory.ForEntityType ?? factory.Create().GetType(), factory);
+			}
+		}
+
+		/// <summary>Gets the factory of the entity with the .NET type specified</summary>
+		/// <param name="typeOfEntity">The type of entity.</param>
+		/// <returns>factory to use or null if not found</returns>
+		public static IEntityFactory2 GetFactory(Type typeOfEntity) { return _factoryPerType.GetValue(typeOfEntity); }
+
+		/// <summary>Gets the factory of the entity with the HomeRecipesCode.EntityType specified</summary>
+		/// <param name="typeOfEntity">The type of entity.</param>
+		/// <returns>factory to use or null if not found</returns>
+		public static IEntityFactory2 GetFactory(HomeRecipesCode.EntityType typeOfEntity)
+		{
+			switch(typeOfEntity)
+			{
+				case HomeRecipesCode.EntityType.CategoryEntity:
+					return new CategoryEntityFactory();
+				case HomeRecipesCode.EntityType.RecipeEntity:
+					return new RecipeEntityFactory();
+				case HomeRecipesCode.EntityType.RecipeCategoryEntity:
+					return new RecipeCategoryEntityFactory();
+				case HomeRecipesCode.EntityType.UserEntity:
+					return new UserEntityFactory();
+				default:
+					return null;
+			}
+		}
+	}
 		
 	/// <summary>Element creator for creating project elements from somewhere else, like inside Linq providers.</summary>
 	public class ElementCreator : ElementCreatorBase, IElementCreator2
@@ -55,6 +201,30 @@ namespace HomeRecipesCode.FactoryClasses
 		{
 			return new DynamicRelation(leftOperand, joinType, rightOperand, aliasLeftOperand, onClause);
 		}
+
+		/// <inheritdoc/>
+		public override IDynamicRelation CreateDynamicRelation(DerivedTableDefinition leftOperand, JoinHint joinType, string rightOperandEntityName, string aliasRightOperand, IPredicate onClause)
+		{
+			return new DynamicRelation(leftOperand, joinType, (HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), rightOperandEntityName, false), aliasRightOperand, onClause);
+		}
+
+		/// <inheritdoc/>
+		public override IDynamicRelation CreateDynamicRelation(string leftOperandEntityName, JoinHint joinType, string rightOperandEntityName, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
+		{
+			return new DynamicRelation((HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), leftOperandEntityName, false), joinType, (HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), rightOperandEntityName, false), aliasLeftOperand, aliasRightOperand, onClause);
+		}
+		
+		/// <inheritdoc/>
+		public override IDynamicRelation CreateDynamicRelation(IEntityFieldCore leftOperand, JoinHint joinType, string rightOperandEntityName, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
+		{
+			return new DynamicRelation(leftOperand, joinType, (HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), rightOperandEntityName, false), aliasLeftOperand, aliasRightOperand, onClause);
+		}
+		
+		/// <inheritdoc/>
+		protected override IEntityFactoryCore GetFactoryImpl(int entityTypeValue) { return EntityFactoryFactory.GetFactory((HomeRecipesCode.EntityType)entityTypeValue); }
+
+		/// <inheritdoc/>
+		protected override IEntityFactoryCore GetFactoryImpl(Type typeOfEntity) { return EntityFactoryFactory.GetFactory(typeOfEntity);	}
 
 	}
 }

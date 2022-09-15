@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////// 
 using System;
 using System.Linq;
+using HomeRecipesCode.EntityClasses;
 using HomeRecipesCode.HelperClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 using SD.LLBLGen.Pro.QuerySpec.AdapterSpecific;
@@ -17,6 +18,18 @@ namespace HomeRecipesCode.FactoryClasses
 	/// <summary>Factory class to produce DynamicQuery instances and EntityQuery instances</summary>
 	public partial class QueryFactory : QueryFactoryBase2
 	{
+		/// <summary>Creates and returns a new EntityQuery for the Category entity</summary>
+		public EntityQuery<CategoryEntity> Category { get { return Create<CategoryEntity>(); } }
+
+		/// <summary>Creates and returns a new EntityQuery for the Recipe entity</summary>
+		public EntityQuery<RecipeEntity> Recipe { get { return Create<RecipeEntity>(); } }
+
+		/// <summary>Creates and returns a new EntityQuery for the RecipeCategory entity</summary>
+		public EntityQuery<RecipeCategoryEntity> RecipeCategory { get { return Create<RecipeCategoryEntity>(); } }
+
+		/// <summary>Creates and returns a new EntityQuery for the User entity</summary>
+		public EntityQuery<UserEntity> User { get { return Create<UserEntity>(); } }
+
 		/// <inheritdoc/>
 		protected override IElementCreatorCore CreateElementCreator() { return new ElementCreator(); }
  

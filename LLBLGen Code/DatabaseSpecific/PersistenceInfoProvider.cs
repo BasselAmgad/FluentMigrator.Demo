@@ -36,6 +36,51 @@ namespace HomeRecipesCode.DatabaseSpecific
 		private void Init()
 		{
 			this.InitClass();
+			InitCategoryEntityMappings();
+			InitRecipeEntityMappings();
+			InitRecipeCategoryEntityMappings();
+			InitUserEntityMappings();
+		}
+
+		/// <summary>Inits CategoryEntity's mappings</summary>
+		private void InitCategoryEntityMappings()
+		{
+			this.AddElementMapping("CategoryEntity", @"HomeRecipes", @"dbo", "Category", 3, 0);
+			this.AddElementFieldMapping("CategoryEntity", "Id", "id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 0);
+			this.AddElementFieldMapping("CategoryEntity", "IsActive", "is_active", false, "Bit", 0, 0, 0, false, "", null, typeof(System.Boolean), 1);
+			this.AddElementFieldMapping("CategoryEntity", "Name", "name", false, "NVarChar", 30, 0, 0, false, "", null, typeof(System.String), 2);
+		}
+
+		/// <summary>Inits RecipeEntity's mappings</summary>
+		private void InitRecipeEntityMappings()
+		{
+			this.AddElementMapping("RecipeEntity", @"HomeRecipes", @"dbo", "Recipe", 5, 0);
+			this.AddElementFieldMapping("RecipeEntity", "Id", "id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 0);
+			this.AddElementFieldMapping("RecipeEntity", "Ingredients", "ingredients", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 1);
+			this.AddElementFieldMapping("RecipeEntity", "Instructions", "instructions", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 2);
+			this.AddElementFieldMapping("RecipeEntity", "IsActive", "is_active", false, "Bit", 0, 0, 0, false, "", null, typeof(System.Boolean), 3);
+			this.AddElementFieldMapping("RecipeEntity", "Title", "title", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 4);
+		}
+
+		/// <summary>Inits RecipeCategoryEntity's mappings</summary>
+		private void InitRecipeCategoryEntityMappings()
+		{
+			this.AddElementMapping("RecipeCategoryEntity", @"HomeRecipes", @"dbo", "RecipeCategory", 4, 0);
+			this.AddElementFieldMapping("RecipeCategoryEntity", "CategoryId", "category_id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 0);
+			this.AddElementFieldMapping("RecipeCategoryEntity", "Id", "id", false, "Int", 0, 10, 0, true, "SCOPE_IDENTITY()", null, typeof(System.Int32), 1);
+			this.AddElementFieldMapping("RecipeCategoryEntity", "IsActive", "is_active", false, "Bit", 0, 0, 0, false, "", null, typeof(System.Boolean), 2);
+			this.AddElementFieldMapping("RecipeCategoryEntity", "RecipeId", "recipe_id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 3);
+		}
+
+		/// <summary>Inits UserEntity's mappings</summary>
+		private void InitUserEntityMappings()
+		{
+			this.AddElementMapping("UserEntity", @"HomeRecipes", @"dbo", "User", 5, 0);
+			this.AddElementFieldMapping("UserEntity", "Id", "id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 0);
+			this.AddElementFieldMapping("UserEntity", "IsActive", "is_active", false, "Bit", 0, 0, 0, false, "", null, typeof(System.Boolean), 1);
+			this.AddElementFieldMapping("UserEntity", "Password", "password", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 2);
+			this.AddElementFieldMapping("UserEntity", "RefreshToken", "refreshToken", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 3);
+			this.AddElementFieldMapping("UserEntity", "Username", "username", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 4);
 		}
 
 	}

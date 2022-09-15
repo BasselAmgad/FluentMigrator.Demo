@@ -42,7 +42,19 @@ namespace HomeRecipesCode.Linq
 		/// <returns>the requested datasource</returns>
 		public IDataSource GetQueryableForEntity(int typeOfEntity)
 		{
-			return null;
+			switch((HomeRecipesCode.EntityType)typeOfEntity)
+			{
+				case HomeRecipesCode.EntityType.CategoryEntity:
+					return this.Category;
+				case HomeRecipesCode.EntityType.RecipeEntity:
+					return this.Recipe;
+				case HomeRecipesCode.EntityType.RecipeCategoryEntity:
+					return this.RecipeCategory;
+				case HomeRecipesCode.EntityType.UserEntity:
+					return this.User;
+				default:
+					return null;
+			}
 		}
 
 		/// <summary>returns the datasource to use in a Linq query which wraps the specified SQL query and projects it to instances of type T</summary>
@@ -57,7 +69,27 @@ namespace HomeRecipesCode.Linq
 			return new DataSource2<T>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse).SetWrappedPlainSQLQuerySpecification(sqlQuery, parameterValues);
 		}
 
+		/// <summary>returns the datasource to use in a Linq query for the entity type specified</summary>
+		/// <typeparam name="TEntity">the type of the entity to get the datasource for</typeparam>
+		/// <returns>the requested datasource</returns>
+		public DataSource2<TEntity> GetQueryableForEntity<TEntity>()
+				where TEntity : class
+		{
+			return new DataSource2<TEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse);
+		}
 
+		/// <summary>returns the datasource to use in a Linq query when targeting CategoryEntity instances in the database.</summary>
+		public DataSource2<CategoryEntity> Category {	get { return new DataSource2<CategoryEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
+		
+		/// <summary>returns the datasource to use in a Linq query when targeting RecipeEntity instances in the database.</summary>
+		public DataSource2<RecipeEntity> Recipe {	get { return new DataSource2<RecipeEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
+		
+		/// <summary>returns the datasource to use in a Linq query when targeting RecipeCategoryEntity instances in the database.</summary>
+		public DataSource2<RecipeCategoryEntity> RecipeCategory {	get { return new DataSource2<RecipeCategoryEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
+		
+		/// <summary>returns the datasource to use in a Linq query when targeting UserEntity instances in the database.</summary>
+		public DataSource2<UserEntity> User {	get { return new DataSource2<UserEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
+		
 
 
 		/// <summary> Gets / sets the IDataAccessAdapter to use for the queries created with this meta data object.</summary>

@@ -75,6 +75,23 @@ namespace HomeRecipesCode.EntityClasses
 		
 		/// <inheritdoc/>
 		protected override ITypeDefaultValue CreateTypeDefaultValueProvider() {	return new TypeDefaultValue(); }
+				
+		/// <inheritdoc/>
+		protected override IEntityCollection2 CreateEntityCollectionForType<T>() { return CommonEntityBase.CreateEntityCollection<T>();	}
+		
+		/// <summary>Creates the entity collection for the types specified</summary>
+		/// <typeparam name="T">type of the element to store in the collection</typeparam>
+		protected static EntityCollection<T> CreateEntityCollection<T>()
+			where T:EntityBase2, IEntity2
+		{
+			return new EntityCollection<T>(EntityFactoryFactory.GetFactory(typeof(T)));
+		}
+		
+		/// <inheritdoc/>
+		protected override Type LLBLGenProEntityTypeEnumType
+		{
+			get { return typeof(HomeRecipesCode.EntityType); }
+		}
 
 		// __LLBLGENPRO_USER_CODE_REGION_START CustomEntityCode
 		// __LLBLGENPRO_USER_CODE_REGION_END
