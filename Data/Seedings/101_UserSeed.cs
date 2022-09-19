@@ -26,7 +26,7 @@ namespace HomeRecipes.Migrations.Seedings
                 Username = "Bassel",
                 Password = hasher.HashPassword(new User(), "p@ssword"),
                 IsActive = true,
-                RefreshToken = null,
+                RefreshToken = "",
             },
             new User
             {
@@ -34,7 +34,7 @@ namespace HomeRecipes.Migrations.Seedings
                 Username = "Omar",
                 Password = hasher.HashPassword(new User(), "p@ssword"),
                 IsActive = true,
-                RefreshToken = null,
+                RefreshToken = "",
             },
             new User
             {
@@ -42,7 +42,7 @@ namespace HomeRecipes.Migrations.Seedings
                 Username = "Walid",
                 Password = hasher.HashPassword(new User(), "p@ssword"),
                 IsActive = true,
-                RefreshToken = null,
+                RefreshToken = "",
             }
         };
 
@@ -53,10 +53,11 @@ namespace HomeRecipes.Migrations.Seedings
                 Insert.IntoTable(TableName.Users)
                     .Row(new
                     {
+                        id = u.Id,
                         username = u.Username,
                         password = u.Password,
                         is_active = u.IsActive,
-                        refresh_token = u.RefreshToken,
+                        refreshToken = u.RefreshToken,
                     });
             }
         }
