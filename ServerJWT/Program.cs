@@ -1,3 +1,9 @@
+using HomeRecipesCode.DatabaseSpecific;
+using HomeRecipesCode.EntityClasses;
+using HomeRecipesCode.FactoryClasses;
+using HomeRecipesCode.HelperClasses;
+using HomeRecipesCode.Linq;
+using HomeRecipesCode.RelationClasses;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -5,10 +11,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SD.LLBLGen.Pro.LinqSupportClasses;
+using SD.LLBLGen.Pro.ORMSupportClasses;
 using Server.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,33 +106,37 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 builder.Services.AddSingleton<Data>();
+builder.Services.AddSingleton<DataAccessAdapter>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(options =>
-{
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-    options.RoutePrefix = string.Empty;
-});
+app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors("Client");
 
 app.MapPost("/register", async ([FromBody] User newUser) =>
 {
-    var data = new Data();
-    var hasher = new PasswordHasher<User>();
-    var usersList = await data.GetUsersAsync();
-    if (usersList is null)
-        throw new Exception("Could not deserialize users list");
-    if (usersList.Find(x => x.UserName == newUser.UserName) != null)
-        return Results.BadRequest("username already exists");
-    User newRegisteredUser = new User(newUser.UserName, "");
-    string hashedPassword = hasher.HashPassword(newRegisteredUser, newUser.Password);
-    newRegisteredUser.Password = hashedPassword;
-    await data.AddUserAsync(newRegisteredUser);
-    return Results.Ok();
+    using (DataAccessAdapter adapter = new(builder.Configuration.GetConnectionString("SqlConnection")))
+    {
+        /*var metaData = new LinqMetaData(adapter);
+        var user = await metaData.User.FirstOrDefaultAsync(u => u.Username == newUser.UserName);
+        if(user != null)
+            return Results.BadRequest("username already exists");*/
+        var hasher = new PasswordHasher<User>();
+        var userEntity = new UserEntity
+        {
+            Id = Guid.NewGuid(),
+            Username = newUser.UserName,
+            Password = hasher.HashPassword(newUser, newUser.Password),
+            RefreshToken = "",
+            IsActive = true,
+        };
+        await adapter.SaveEntityAsync(userEntity);
+        return Results.Ok(userEntity);
+    }
+
 });
 
 app.MapPost("/login", [AllowAnonymous] async (User user) =>
