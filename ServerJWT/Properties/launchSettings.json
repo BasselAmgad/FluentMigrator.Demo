@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "https://basselamgad.azurewebsites.net",
+      "applicationUrl": "https://localhost:7012",
       "sslPort": 44374
     }
   },
@@ -13,7 +13,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "https://basselamgad.azurewebsites.net",
+      "applicationUrl": "https://localhost:7015",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Production"
       }
