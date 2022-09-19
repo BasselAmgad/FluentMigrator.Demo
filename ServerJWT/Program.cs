@@ -11,15 +11,29 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SD.LLBLGen.Pro.DQE.SqlServer;
 using SD.LLBLGen.Pro.LinqSupportClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 using Server.Models;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure the DQE
+RuntimeConfiguration.ConfigureDQE<SQLServerDQEConfiguration>(
+                                c => c.SetTraceLevel(TraceLevel.Verbose)
+                                        .AddDbProviderFactory(typeof(System.Data.SqlClient.SqlClientFactory))
+                                        .SetDefaultCompatibilityLevel(SqlServerCompatibilityLevel.SqlServer2012));
+// Configure tracers
+RuntimeConfiguration.Tracing
+                        .SetTraceLevel("ORMPersistenceExecution", TraceLevel.Info)
+                        .SetTraceLevel("ORMPlainSQLQueryExecution", TraceLevel.Info);
+// Configure entity related settings
+RuntimeConfiguration.Entity
+                        .SetMarkSavedEntitiesAsFetched(true);
 
 var securityScheme = new OpenApiSecurityScheme()
 {
@@ -106,7 +120,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 builder.Services.AddSingleton<Data>();
-builder.Services.AddSingleton<DataAccessAdapter>();
+builder.Services.AddSingleton<DataAccessAdapter>(adapter => new DataAccessAdapter(builder.Configuration.GetConnectionString("SqlConnection")));
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -116,14 +130,12 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors("Client");
 
-app.MapPost("/register", async ([FromBody] User newUser) =>
+app.MapPost("/register", async (DataAccessAdapter adapter, [FromBody] User newUser) =>
 {
-    using (DataAccessAdapter adapter = new(builder.Configuration.GetConnectionString("SqlConnection")))
-    {
-        /*var metaData = new LinqMetaData(adapter);
+        var metaData = new LinqMetaData(adapter);
         var user = await metaData.User.FirstOrDefaultAsync(u => u.Username == newUser.UserName);
         if(user != null)
-            return Results.BadRequest("username already exists");*/
+            return Results.BadRequest("username already exists");
         var hasher = new PasswordHasher<User>();
         var userEntity = new UserEntity
         {
@@ -135,8 +147,6 @@ app.MapPost("/register", async ([FromBody] User newUser) =>
         };
         await adapter.SaveEntityAsync(userEntity);
         return Results.Ok(userEntity);
-    }
-
 });
 
 app.MapPost("/login", [AllowAnonymous] async (User user) =>
