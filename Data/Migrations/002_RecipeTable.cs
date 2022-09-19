@@ -1,5 +1,4 @@
-﻿using HomeRecipes.EntityClasses;
-using HomeRecipes.Migrations.Migrations;
+﻿using HomeRecipes.Migrations.Migrations;
 
 namespace FluentMigrator.Demo.Migrations
 {
