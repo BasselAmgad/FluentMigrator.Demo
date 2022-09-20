@@ -152,7 +152,7 @@ app.MapPost("/register", async ([FromBody] User newUser) =>
     };
 });
 
-app.MapPost("/login", [AllowAnonymous] async (UserEntity user) =>
+app.MapPost("/login", [AllowAnonymous] async (User user) =>
 {
     using (DataAccessAdapter adapter = new(sqlConnectionString))
     {
@@ -161,7 +161,7 @@ app.MapPost("/login", [AllowAnonymous] async (UserEntity user) =>
         var usersList = await metaData.User.ToListAsync();
         if (usersList is null)
             throw new Exception("Could not deserialize users list");
-        var userData = usersList.FirstOrDefault(u => u.Username == user.Username);
+        var userData = usersList.FirstOrDefault(u => u.Username == user.UserName);
         if (userData is null)
             return Results.NotFound("User does not exist");
         var verifyPassword = passwordHasher.VerifyHashedPassword(userData, userData.Password, user.Password);
@@ -178,7 +178,7 @@ app.MapPost("/login", [AllowAnonymous] async (UserEntity user) =>
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim("Id", userData.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim(JwtRegisteredClaimNames.Sub, userData.Username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             }),
             // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
@@ -192,7 +192,7 @@ app.MapPost("/login", [AllowAnonymous] async (UserEntity user) =>
         var token = jwtTokenHandler.CreateToken(tokenDescriptor);
         var jwtToken = jwtTokenHandler.WriteToken(token);
         return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.Username });
-    }
+    };
 });
 
 /*app.MapGet("/antiforgery", (IAntiforgery antiforgery, HttpContext context) =>
@@ -207,6 +207,8 @@ app.MapGet("/recipes", [Authorize] async (Data data) =>
     {
         var metaData = new LinqMetaData(adapter);
         var recipes = await metaData.Recipe.ToListAsync();
+        if(recipes is null)
+            return Results.NotFound();
         return Results.Ok(recipes);
     }
 });
@@ -225,20 +227,29 @@ app.MapGet("/recipes/{id}", [Authorize] async (Data data, Guid id) =>
 
 app.MapPost("/recipes", [Authorize] async (Data data, Recipe recipe) =>
 {
-    try
+    using (DataAccessAdapter adapter = new(sqlConnectionString))
     {
-        recipe.Id = Guid.NewGuid();
-        await data.AddRecipeAsync(recipe);
-        return Results.Created($"/recipes/{recipe.Id}", recipe);
+        var metaData = new LinqMetaData(adapter);
+        var newRecipeEntity = new RecipeEntity
+        {
+            Id = recipe.Id,
+            Title = recipe.Title,
+            Ingredients = recipe.Ingredients,
+            Instructions = recipe.Instructions
+        };
+        await adapter.SaveEntityAsync(newRecipeEntity);
+        foreach(var category in recipe.Categories)
+        {
+            var categoryEntity = new CategoryEntity { Id = Guid.NewGuid(), Name = category };
+            await adapter.SaveEntityAsync(categoryEntity);
+            var recipeCategory = new RecipeCategoryEntity { Id = Guid.NewGuid(), RecipeId = newRecipeEntity.Id, CategoryId = categoryEntity.Id};
+            await adapter.SaveEntityAsync(recipeCategory);
+        }
+        return Results.Ok();
     }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
-
 });
 
-app.MapPut("/recipes/{id}", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, Guid id, Recipe newRecipe) =>
+app.MapPut("/recipes/{id}", [Authorize] async (Data data, Guid id, Recipe newRecipe) =>
 {
     try
     {
