@@ -21,6 +21,7 @@ using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var sqlConnectionString = builder.Configuration.GetConnectionString("SqlConnection");
 
 // Configure the DQE
 RuntimeConfiguration.ConfigureDQE<SQLServerDQEConfiguration>(
@@ -108,7 +109,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "Client",
                       policy =>
                       {
-                          policy.WithOrigins(builder.Configuration["ClientUrl"],builder.Configuration["DeployedClient"])
+                          policy.WithOrigins(builder.Configuration["ClientUrl"], builder.Configuration["DeployedClient"])
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowCredentials();
@@ -120,7 +121,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 builder.Services.AddSingleton<Data>();
-builder.Services.AddSingleton<DataAccessAdapter>(adapter => new DataAccessAdapter(builder.Configuration.GetConnectionString("SqlConnection")));
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -130,11 +130,13 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors("Client");
 
-app.MapPost("/register", async (DataAccessAdapter adapter, [FromBody] User newUser) =>
+app.MapPost("/register", async ([FromBody] User newUser) =>
 {
+    using (DataAccessAdapter adapter = new(sqlConnectionString))
+    {
         var metaData = new LinqMetaData(adapter);
         var user = await metaData.User.FirstOrDefaultAsync(u => u.Username == newUser.UserName);
-        if(user != null)
+        if (user != null)
             return Results.BadRequest("username already exists");
         var hasher = new PasswordHasher<User>();
         var userEntity = new UserEntity
@@ -147,6 +149,7 @@ app.MapPost("/register", async (DataAccessAdapter adapter, [FromBody] User newUs
         };
         await adapter.SaveEntityAsync(userEntity);
         return Results.Ok(userEntity);
+    };
 });
 
 app.MapPost("/login", [AllowAnonymous] async (User user) =>
