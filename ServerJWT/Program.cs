@@ -21,7 +21,6 @@ using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-var sqlConnectionString = builder.Configuration.GetConnectionString("SqlConnection");
 
 // Configure the DQE
 RuntimeConfiguration.ConfigureDQE<SQLServerDQEConfiguration>(
@@ -36,6 +35,7 @@ RuntimeConfiguration.Tracing
 RuntimeConfiguration.Entity
                         .SetMarkSavedEntitiesAsFetched(true);
 
+var sqlConnectionString = builder.Configuration.GetConnectionString("SqlConnection");
 var securityScheme = new OpenApiSecurityScheme()
 {
     Name = "Authorization",
@@ -152,86 +152,81 @@ app.MapPost("/register", async ([FromBody] User newUser) =>
     };
 });
 
-app.MapPost("/login", [AllowAnonymous] async (User user) =>
+app.MapPost("/login", [AllowAnonymous] async (UserEntity user) =>
 {
-    Data data = new();
-    var passwordHasher = new PasswordHasher<User>();
-    var usersList = await data.GetUsersAsync();
-    if (usersList is null)
-        throw new Exception("Could not deserialize users list");
-    var userData = usersList.FirstOrDefault(u => u.UserName == user.UserName);
-    if (userData is null)
-        return Results.NotFound("User does not exist");
-    var verifyPassword = passwordHasher.VerifyHashedPassword(userData, userData.Password, user.Password);
-    if (verifyPassword == PasswordVerificationResult.Failed)
-        return Results.Unauthorized();
-    var issuer = builder.Configuration["Jwt:Issuer"];
-    var audience = builder.Configuration["Jwt:Audience"];
-    var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]));
-    var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-    var jwtTokenHandler = new JwtSecurityTokenHandler();
-    var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
-    var tokenDescriptor = new SecurityTokenDescriptor
+    using (DataAccessAdapter adapter = new(sqlConnectionString))
     {
-        Subject = new ClaimsIdentity(new[]
+        var passwordHasher = new PasswordHasher<UserEntity>();
+        var metaData = new LinqMetaData(adapter);
+        var usersList = await metaData.User.ToListAsync();
+        if (usersList is null)
+            throw new Exception("Could not deserialize users list");
+        var userData = usersList.FirstOrDefault(u => u.Username == user.Username);
+        if (userData is null)
+            return Results.NotFound("User does not exist");
+        var verifyPassword = passwordHasher.VerifyHashedPassword(userData, userData.Password, user.Password);
+        if (verifyPassword == PasswordVerificationResult.Failed)
+            return Results.Unauthorized();
+        var issuer = builder.Configuration["Jwt:Issuer"];
+        var audience = builder.Configuration["Jwt:Audience"];
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var jwtTokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+        var tokenDescriptor = new SecurityTokenDescriptor
         {
+            Subject = new ClaimsIdentity(new[]
+            {
                 new Claim("Id", userData.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             }),
-        // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
-        // but since this is a demo app we can extend it to fit our current need
-        Expires = DateTime.UtcNow.AddHours(6),
-        Audience = audience,
-        Issuer = issuer,
-        // here we are adding the encryption alogorithim information which will be used to decrypt our token
-        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
-    };
-    var token = jwtTokenHandler.CreateToken(tokenDescriptor);
-    var jwtToken = jwtTokenHandler.WriteToken(token);
-    return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.UserName });
+            // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
+            // but since this is a demo app we can extend it to fit our current need
+            Expires = DateTime.UtcNow.AddHours(6),
+            Audience = audience,
+            Issuer = issuer,
+            // here we are adding the encryption alogorithim information which will be used to decrypt our token
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
+        };
+        var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+        var jwtToken = jwtTokenHandler.WriteToken(token);
+        return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.Username });
+    }
 });
 
-app.MapGet("/antiforgery", (IAntiforgery antiforgery, HttpContext context) =>
+/*app.MapGet("/antiforgery", (IAntiforgery antiforgery, HttpContext context) =>
 {
     var tokens = antiforgery.GetAndStoreTokens(context);
     context.Response.Cookies.Append("X-XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
-});
+});*/
 
-app.MapGet("/recipes", [Authorize] async (IAntiforgery antiforgery, Data data, HttpContext context) =>
+app.MapGet("/recipes", [Authorize] async (Data data) =>
 {
-    try
+    using(DataAccessAdapter adapter = new(sqlConnectionString))
     {
-        //await antiforgery.ValidateRequestAsync(context);
-        var recipes = await data.GetRecipesAsync();
+        var metaData = new LinqMetaData(adapter);
+        var recipes = await metaData.Recipe.ToListAsync();
         return Results.Ok(recipes);
     }
-    catch (Exception ex)
+});
+
+app.MapGet("/recipes/{id}", [Authorize] async (Data data, Guid id) =>
+{
+    using (DataAccessAdapter adapter = new(sqlConnectionString))
     {
-        return Results.Problem(ex?.Message ?? string.Empty);
+        var metaData = new LinqMetaData(adapter);
+        var recipes = await metaData.Recipe.FirstOrDefaultAsync(r => r.Id == id);
+        if (recipes is null)
+            return Results.NotFound();
+        return Results.Ok(recipes);
     }
 });
 
-app.MapGet("/recipes/{id}", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, Guid id) =>
+app.MapPost("/recipes", [Authorize] async (Data data, Recipe recipe) =>
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
-        Recipe recipe = await data.GetRecipeAsync(id);
-        return Results.Ok(recipe);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
-
-});
-
-app.MapPost("/recipes", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, Recipe recipe) =>
-{
-    try
-    {
-        //await antiforgery.ValidateRequestAsync(context);
         recipe.Id = Guid.NewGuid();
         await data.AddRecipeAsync(recipe);
         return Results.Created($"/recipes/{recipe.Id}", recipe);
@@ -247,7 +242,6 @@ app.MapPut("/recipes/{id}", [Authorize] async (Data data, IAntiforgery antiforge
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         var updatedRecipe = await data.EditRecipeAsync(id, newRecipe);
         return Results.Ok(updatedRecipe);
     }
@@ -262,7 +256,6 @@ app.MapDelete("/recipes/{id}", [Authorize] async (Data data, IAntiforgery antifo
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         await data.RemoveRecipeAsync(id);
         return Results.Ok();
     }
@@ -277,7 +270,6 @@ app.MapGet("/categories", [Authorize] async (Data data, IAntiforgery antiforgery
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         var categories = await data.GetCategoriesAsync();
         return Results.Ok(categories);
     }
@@ -291,7 +283,6 @@ app.MapPost("/categories", [Authorize] async (Data data, IAntiforgery antiforger
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         await data.AddCategoryAsync(category);
         return Results.Created($"/categories/{category}", category);
     }
@@ -305,7 +296,6 @@ app.MapPut("/categories", [Authorize] async (Data data, IAntiforgery antiforgery
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         await data.EditCategoryAsync(category, newCategory);
         return Results.Ok($"Category ({category}) updated to ({newCategory})");
     }
@@ -319,7 +309,6 @@ app.MapDelete("/categories", [Authorize] async (Data data, IAntiforgery antiforg
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         await data.RemoveCategoryAsync(category);
         return Results.Ok();
     }
@@ -333,7 +322,6 @@ app.MapPost("/recipes/category", [Authorize] async (Data data, IAntiforgery anti
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         await data.AddCategoryToRecipeAsync(id, category);
         return Results.Created($"recipes/category/{category}", category);
     }
@@ -347,7 +335,6 @@ app.MapDelete("/recipes/category", [Authorize] async (Data data, IAntiforgery an
 {
     try
     {
-        //await antiforgery.ValidateRequestAsync(context);
         await data.RemoveCategoryFromRecipeAsync(id, category);
         return Results.Ok();
     }
