@@ -121,6 +121,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 builder.Services.AddSingleton<Data>();
+builder.Services.AddTransient(a => new DataAccessAdapter(sqlConnectionString));
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -130,10 +131,8 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors("Client");
 
-app.MapPost("/register", async ([FromBody] User newUser) =>
+app.MapPost("/register", async (DataAccessAdapter adapter, [FromBody] User newUser) =>
 {
-    using (DataAccessAdapter adapter = new(sqlConnectionString))
-    {
         var metaData = new LinqMetaData(adapter);
         var user = await metaData.User.FirstOrDefaultAsync(u => u.Username == newUser.UserName);
         if (user != null)
@@ -149,13 +148,10 @@ app.MapPost("/register", async ([FromBody] User newUser) =>
         };
         await adapter.SaveEntityAsync(userEntity);
         return Results.Ok(userEntity);
-    };
 });
 
-app.MapPost("/login", [AllowAnonymous] async (User user) =>
+app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User user) =>
 {
-    using (DataAccessAdapter adapter = new(sqlConnectionString))
-    {
         var passwordHasher = new PasswordHasher<UserEntity>();
         var metaData = new LinqMetaData(adapter);
         var usersList = await metaData.User.ToListAsync();
@@ -192,7 +188,6 @@ app.MapPost("/login", [AllowAnonymous] async (User user) =>
         var token = jwtTokenHandler.CreateToken(tokenDescriptor);
         var jwtToken = jwtTokenHandler.WriteToken(token);
         return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.Username });
-    };
 });
 
 /*app.MapGet("/antiforgery", (IAntiforgery antiforgery, HttpContext context) =>
@@ -201,34 +196,26 @@ app.MapPost("/login", [AllowAnonymous] async (User user) =>
     context.Response.Cookies.Append("X-XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
 });*/
 
-app.MapGet("/recipes", [Authorize] async (Data data) =>
+app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
 {
-    using(DataAccessAdapter adapter = new(sqlConnectionString))
-    {
         var metaData = new LinqMetaData(adapter);
         var recipes = await metaData.Recipe.ToListAsync();
         if(recipes is null)
             return Results.NotFound();
         return Results.Ok(recipes);
-    }
 });
 
-app.MapGet("/recipes/{id}", [Authorize] async (Data data, Guid id) =>
+app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id) =>
 {
-    using (DataAccessAdapter adapter = new(sqlConnectionString))
-    {
         var metaData = new LinqMetaData(adapter);
         var recipes = await metaData.Recipe.FirstOrDefaultAsync(r => r.Id == id);
         if (recipes is null)
             return Results.NotFound();
         return Results.Ok(recipes);
-    }
 });
 
-app.MapPost("/recipes", [Authorize] async (Data data, Recipe recipe) =>
+app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe recipe) =>
 {
-    using (DataAccessAdapter adapter = new(sqlConnectionString))
-    {
         var metaData = new LinqMetaData(adapter);
         var newRecipeEntity = new RecipeEntity
         {
@@ -246,7 +233,6 @@ app.MapPost("/recipes", [Authorize] async (Data data, Recipe recipe) =>
             await adapter.SaveEntityAsync(recipeCategory);
         }
         return Results.Ok();
-    }
 });
 
 app.MapPut("/recipes/{id}", [Authorize] async (Data data, Guid id, Recipe newRecipe) =>
