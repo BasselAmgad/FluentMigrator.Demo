@@ -14,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using SD.LLBLGen.Pro.DQE.SqlServer;
 using SD.LLBLGen.Pro.LinqSupportClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
+using SD.LLBLGen.Pro.QuerySpec.Adapter;
 using Server.Models;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
@@ -156,7 +157,7 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
         var metaData = new LinqMetaData(adapter);
         var usersList = await metaData.User.ToListAsync();
         if (usersList is null)
-            throw new Exception("Could not deserialize users list");
+            throw new Exception("Could not fetch users list from DB");
         var userData = usersList.FirstOrDefault(u => u.Username == user.UserName);
         if (userData is null)
             return Results.NotFound("User does not exist");
@@ -189,12 +190,6 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
         var jwtToken = jwtTokenHandler.WriteToken(token);
         return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.Username });
 });
-
-/*app.MapGet("/antiforgery", (IAntiforgery antiforgery, HttpContext context) =>
-{
-    var tokens = antiforgery.GetAndStoreTokens(context);
-    context.Response.Cookies.Append("X-XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
-});*/
 
 app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
 {
@@ -229,119 +224,103 @@ app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe rec
         {
             var categoryEntity = new CategoryEntity { Id = Guid.NewGuid(), Name = category };
             await adapter.SaveEntityAsync(categoryEntity);
-            var recipeCategory = new RecipeCategoryEntity { Id = Guid.NewGuid(), RecipeId = newRecipeEntity.Id, CategoryId = categoryEntity.Id};
+            var recipeCategory = new RecipeCategoryEntity {RecipeId = newRecipeEntity.Id, CategoryId = categoryEntity.Id};
             await adapter.SaveEntityAsync(recipeCategory);
         }
         return Results.Ok();
 });
 
-app.MapPut("/recipes/{id}", [Authorize] async (Data data, Guid id, Recipe newRecipe) =>
+app.MapPut("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id, Recipe newRecipe) =>
 {
-    try
-    {
-        var updatedRecipe = await data.EditRecipeAsync(id, newRecipe);
-        return Results.Ok(updatedRecipe);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
-
+    //TODO
 });
 
-app.MapDelete("/recipes/{id}", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, Guid id) =>
+app.MapDelete("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id) =>
 {
-    try
-    {
-        await data.RemoveRecipeAsync(id);
-        return Results.Ok();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
-
+    var recipeEntity = new RecipeEntity { Id = id };
+    await adapter.DeleteEntityAsync(recipeEntity);
+    return Results.Ok("Entity Deleted");
 });
 
-app.MapGet("/categories", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context) =>
+app.MapGet("/categories", [Authorize] async (DataAccessAdapter adapter) =>
 {
-    try
-    {
-        var categories = await data.GetCategoriesAsync();
-        return Results.Ok(categories);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
+    var metaData = new LinqMetaData(adapter);
+    var categories = await metaData.Category.ToListAsync();
+    if (categories is null)
+        return Results.NotFound();
+    return Results.Ok(categories);
 });
 
-app.MapPost("/categories", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, string category) =>
+app.MapPost("/categories", [Authorize] async (DataAccessAdapter adapter, string category) =>
 {
-    try
-    {
-        await data.AddCategoryAsync(category);
-        return Results.Created($"/categories/{category}", category);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
+    var metaData = new LinqMetaData(adapter);
+    var categoryList = await metaData.Category.ToListAsync();
+    var categoryData = categoryList.FirstOrDefault(c => c.Name == category);
+    if (categoryData is not null)
+        return Results.BadRequest("Category already exists");
+    var categoryEntity = new CategoryEntity { Id = Guid.NewGuid(), Name = category };
+    await adapter.SaveEntityAsync(categoryEntity);
+    return Results.Ok($"New category added: {category}");
 });
 
-app.MapPut("/categories", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, string category, string newCategory) =>
+app.MapPut("/categories", [Authorize] async (DataAccessAdapter adapter, string category, string newCategory) =>
 {
-    try
-    {
-        await data.EditCategoryAsync(category, newCategory);
-        return Results.Ok($"Category ({category}) updated to ({newCategory})");
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
+    var metaData = new LinqMetaData(adapter);
+    var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
+    if (categoryEntity is null)
+        return Results.NotFound();
+    categoryEntity.Name = newCategory;
+    await adapter.SaveEntityAsync(categoryEntity);
+    return Results.Ok($"`{category}` updated to `{newCategory}`");
 });
 
-app.MapDelete("/categories", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, string category) =>
+app.MapDelete("/categories", [Authorize] async (DataAccessAdapter adapter, string category) =>
 {
-    try
-    {
-        await data.RemoveCategoryAsync(category);
-        return Results.Ok();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
+    var metaData = new LinqMetaData(adapter);
+    var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
+    if (categoryEntity is null)
+        return Results.NotFound();
+    await adapter.DeleteEntityAsync(categoryEntity);
+    return Results.Ok();
 });
 
-app.MapPost("/recipes/category", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, Guid id, string category) =>
+app.MapPost("/recipes/category", [Authorize] async (DataAccessAdapter adapter, Guid id, string category) =>
 {
-    try
+    var metaData = new LinqMetaData(adapter);
+    var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
+    if (categoryEntity is null) return Results.NotFound("Category not found");
+    var recipeEntity = await metaData.Recipe.FirstOrDefaultAsync(r => r.Id == id);
+    if (recipeEntity is null) return Results.NotFound("Recipe not found");
+    var recipeCategoryExists = metaData.RecipeCategory
+    .FirstOrDefault(r => r.RecipeId == id && r.CategoryId == categoryEntity.Id);
+    if (recipeCategoryExists is not null) return Results.BadRequest("Category already exists");
+    var recipeCategoryEntity = new RecipeCategoryEntity
     {
-        await data.AddCategoryToRecipeAsync(id, category);
-        return Results.Created($"recipes/category/{category}", category);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
+        RecipeId = id,
+        CategoryId = categoryEntity.Id
+    };
+    await adapter.SaveEntityAsync(recipeCategoryEntity);
+    return Results.Ok();
 });
 
-app.MapDelete("/recipes/category", [Authorize] async (Data data, IAntiforgery antiforgery, HttpContext context, Guid id, string category) =>
+app.MapDelete("/recipes/category", [Authorize] async (DataAccessAdapter adapter, Guid id, string category) =>
 {
-    try
-    {
-        await data.RemoveCategoryFromRecipeAsync(id, category);
-        return Results.Ok();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex?.Message ?? string.Empty);
-    }
+    var metaData = new LinqMetaData(adapter);
+    var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
+    if (categoryEntity is null) return Results.NotFound("Category not found");
+    var recipeEntity = await metaData.Recipe.FirstOrDefaultAsync(r => r.Id == id);
+    if (recipeEntity is null) return Results.NotFound("Recipe not found");
+    var recipeCategoryEntity = await metaData.RecipeCategory.FirstOrDefaultAsync(r => r.RecipeId == id && r.CategoryId == categoryEntity.Id);
+    if (recipeCategoryEntity is null) return Results.NotFound("This category is not in the recipe");
+    await adapter.DeleteEntityAsync(recipeCategoryEntity);
+    return Results.Ok();
 });
 
-
+/*app.MapGet("/antiforgery", (IAntiforgery antiforgery, HttpContext context) =>
+{
+    var tokens = antiforgery.GetAndStoreTokens(context);
+    context.Response.Cookies.Append("X-XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
+});*/
 
 
 
