@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerJWT", "ServerJWT\Serv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HomeRecipesCodeDBSpecific", "LLBLGen Code\DatabaseSpecific\HomeRecipesCodeDBSpecific.csproj", "{D7F05B39-5E27-4BAA-B534-E4401FB6372E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{1DDB4F29-777F-428E-A899-6A99D0E14745}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{D7F05B39-5E27-4BAA-B534-E4401FB6372E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7F05B39-5E27-4BAA-B534-E4401FB6372E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7F05B39-5E27-4BAA-B534-E4401FB6372E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DDB4F29-777F-428E-A899-6A99D0E14745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DDB4F29-777F-428E-A899-6A99D0E14745}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DDB4F29-777F-428E-A899-6A99D0E14745}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DDB4F29-777F-428E-A899-6A99D0E14745}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
