@@ -1,0 +1,824 @@
+﻿@page
+@inject IConfiguration Config;
+@{
+    ViewData["Title"] = "Home page";
+    var Url = Config["DeployedServer"];
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Recipes</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body background="/images/background.jpg" style="background-size: cover; background-attachment: fixed;">
+    <div x-data="{loggedIn:false}" x-init="loggedIn = checkAuthenticated();">
+        <template x-if="!loggedIn">
+            <div class="container">
+                <br />
+                <div x-data="{login:true}" class="row justify-content-center ">
+                    <div class="col-md-6">
+                        <div id="registerCard" class="card">
+                            @*Login and register nav bar*@
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item">
+                                    <a id="loginNavLink" class="nav-link active" aria-current="page" href="#"
+                                       x-on:click="switchNavLogin(true);login=true;">Login</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a id="registerNavLink" class="nav-link" href="#"
+                                       x-on:click="switchNavLogin(false);login=false;">Register</a>
+                                </li>
+                            </ul>
+                            @*Login form*@
+                            <template x-data={username:'',password:''} x-if="login">
+                                <form id="loginForm">
+                                    <div id="registerCard" class="card-body" x-show="login">
+                                        <h4 class="card-title text-center">Login</h4>
+                                        <div class="mb-3">
+                                            <label for="usernameInput" class="form-label">Username</label>
+                                            <input x-model="username" type="text" class="form-control" id="usernameInput" aria-describedby="usernameHelp">
+                                            <span id="usernameHelp" class="form-text"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="passwordInput" class="form-label">Password</label>
+                                            <input x-model="password" type="password" id="passwordInput" class="form-control" aria-describedby="passwordHelp">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" x-on:click="this.loggedIn = await loginUser(username,password); console.log(loggedIn);" class="btn btn-primary">Login</button>
+                                    </div>
+                                </form>
+                            </template>
+                            @*Register form*@
+                            <template x-data="{usernameRegister:'', passwordRegister:''}" x-if="!login">
+                                <form id="registerForm">
+                                    <div id="registerCard" class="card-body" x-show="!login">
+                                        <h4 class="card-title text-center">Register</h4>
+                                        <div class="mb-3">
+                                            <label for="usernameInput" class="form-label">Username</label>
+                                            <input x-model="usernameRegister" type="text" class="form-control" id="usernameInput"
+                                                   aria-describedby="usernameHelp" min="1">
+                                            <div id="usernameHelp" class="form-text">
+                                                Your username must be between 1 to 20 characters.
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="passwordInput" class="form-label">Password</label>
+                                            <input x-model="passwordRegister" min="5" max="20" type="password" id="passwordInput" class="form-control"
+                                                   aria-describedby="passwordHelp" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}">
+                                            <div id="passwordHelp" class="form-text">
+                                                Your password must be between 8 to 20 characters which contain at least one numeric digit, one uppercase and one lowercase letter.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" x-on:click="loggedIn = await registerUser(usernameRegister,passwordRegister);" class="btn btn-primary">Register</button>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <template x-if="loggedIn" x-init="loggedIn = checkAuthenticated();">
+        <div x-data="{show:true}">
+            @*Navbar*@
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Home Recipes</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarColor01">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" style="color:whitesmoke" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Recipes</a>
+                                <div class="dropdown-menu" x-data>
+                                    <button class="dropdown-item" x-on:click="show = true">View Recipes</button>
+                                    <button class="dropdown-item" data-bs-target="#addRecipeModal2" data-bs-toggle="modal">Add Recipe</button>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" style="color:whitesmoke" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Categories</a>
+                                <div class="dropdown-menu" x-data>
+                                    <button class="dropdown-item" x-on:click="show = false">View Categories</button>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add Category</button>
+                                </div>
+                            </li>
+                        </ul>
+                        <button x-on:click="logOut()" class="btn btn-primary my-2 my-sm-0" type="button">Log Out</button>
+                    </div>
+                </div>
+            </nav>
+
+            @*View Recipes*@
+            <div x-data x-show="show" class="container">
+                <h1 class="text-center my-4" style="color:white">Recipes</h1>
+                <div class="row row-cols-md-4 "
+                     x-data="
+                 {
+                 index:0,
+                 selectedRecipe:{id:'',title:'',ingredients:'',instructions:'',categories:[]},
+                 recipes: [],
+                 async init() {this.recipes = await getRecipes();}
+                }">
+                    <template x-for="recipe in recipes">
+                        <div x-data="{cardRecipe:{},init(){this.cardRecipe = recipes[index++]}}">
+                            <div class="card card text-white bg-primary mb-3" x-bind:id="`heading_${recipe.id}`">
+                                <div class="card-header">
+                                    <div class="d-grid">
+                                        <button class="btn btn-lg btn-primary" aria-expanded="false" x-on:click="selectedRecipe={...cardRecipe}"
+                                                data-bs-toggle="modal" data-bs-target="#viewRecipeModal">
+                                            <h4><span x-text="recipe.title"></span></h4>
+                                        </button>
+                                    </div>
+                                    <template x-for="category in recipe.categories">
+                                        <span style="font-size:12px; margin-top:5px; margin-right: 5px;" class="badge rounded-pill bg-light" x-text="category"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    @*View Recipe Modal*@
+                    <div class="modal fade" id="viewRecipeModal" tabindex="-1" aria-labelledby="viewRecipeLabel" aria-hidden="true" x-transition>
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <div class="list-group">
+                                        <div class="card-body text-dark list-group-item">
+                                            <h4 class="card-title text-center"><span x-text="selectedRecipe.title"></span></h4>
+                                            <template x-for="category in selectedRecipe.categories">
+                                                <span x-text="category" style="font-size:12px; margin-top:5px; margin-right: 5px;" class="badge rounded-pill bg-primary"></span>
+                                            </template>
+                                        </div>
+                                        <div class="card-body text-dark list-group-item">
+                                            <div class="container">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h5 class="card-title">Ingredients</h5>
+                                                        <ul class="list-group ">
+                                                            <template x-for="ingredient in selectedRecipe.ingredients">
+                                                                <li class="list-group-item"><span x-text="ingredient"></span></li>
+                                                            </template>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col">
+                                                        <h5 class="card-title">Instructions</h5>
+                                                        <ol class="list-group list-group-numbered">
+                                                            <template x-for="instruction in selectedRecipe.instructions">
+                                                                <li class="list-group-item"><span x-text="instruction"></span></li>
+                                                            </template>
+                                                        </ol>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer text-center">
+                                    <button data-bs-target="#editRecipeModal" data-bs-toggle="modal" type="button" class="btn btn btn-secondary">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button data-bs-target="#deleteRecipeModal" data-bs-toggle="modal" type="button" class="btn btn btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Edit Recipe Modal*@
+                    <div class="modal fade" id="editRecipeModal" tabindex="-1" aria-labelledby="editRecipeLabel" aria-hidden="true" x-transition>
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editRecipeLabel">Edit Recipe</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div x-data="
+                                     {
+                                     allCategories:[],
+                                     newInstructions:'',
+                                     newIngredients:'',
+                                     async init() {this.allCategories = await getCategories()}
+                                    }">
+                                        <form id="editRecipe-form"
+                                              x-on:submit.prevent="await editRecipe(selectedRecipe)">
+                                            <div class="form-floating mb-3">
+                                                <input x-model="selectedRecipe.title"
+                                                       type="text" class="form-control" id="title-text">
+                                                <label for="title-text" class="col-form-label">Title</label>
+                                            </div>
+                                            <div class="form-floating mb-3">
+                                                <textarea x-model="selectedRecipe.ingredients.join('\n')"
+                                                          class="form-control" id="ingredients-text" minlength="5"></textarea>
+                                                <label for="ingredients-text" class="col-form-label">Ingredients</label>
+                                            </div>
+                                            <div class="form-floating mb-3">
+                                                <textarea x-model="selectedRecipe.instructions.join('\n')"
+                                                          class="form-control" id="Instructions-text" minlength="5"></textarea>
+                                                <label for="instructions-text" class="col-form-label">Instructions</label>
+                                            </div>
+                                            <div>
+                                                <label class="col-form-label">Categories</label>
+                                                <select x-model="selectedRecipe.categories" id="categoriesSelect"
+                                                        class="form-select" multiple>
+                                                    <template x-for="category in allCategories">
+                                                        <option x-bind:value="category" x-bind:selected="selectedRecipe.categories.includes(category)?true:false"
+                                                                x-bind:label="category"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" form="editRecipe-form" class="btn btn-danger">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Delete Recipe Modal*@
+                    <div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-labelledby="deleteRecipeLabel" aria-hidden="true" x-transition>
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteRecipeLabel">Delete Recipe</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="deleteRecipe-form" x-on:submit.prevent="await deleteRecipe(selectedRecipe)">
+                                        <p>Are you sure you want to delete <span x-text="selectedRecipe.title"></span></p>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" form="deleteRecipe-form" class="btn btn-danger">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*Add Recipe Modal*@
+            <div class="modal fade" id="addRecipeModal2" tabindex="-1" aria-labelledby="addRecipeLabel" aria-hidden="true" x-transition>
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addRecipeLabel">Add Recipe</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div x-data="
+                         {
+                         allCategories:[],
+                         recipe:{Title:'',Ingredients:'',Instructions:'',Categories:[]},
+                         async init() {this.allCategories = await getCategories();}
+                        }">
+                                <form id="addRecipe-form"
+                                      x-on:submit.prevent="await addRecipe(recipe);">
+                                    <div class="form-floating mb-3">
+                                        <input x-model="recipe.Title" type="text" class="form-control" id="title-text">
+                                        <label for="title-text" class="col-form-label">Title</label>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        <textarea x-model="recipe.Ingredients"
+                                                  class="form-control" id="ingredients-text" minlength="5"></textarea>
+                                        <label for="ingredients-text" class="col-form-label">Ingredients</label>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        <textarea x-model="recipe.Instructions"
+                                                  class="form-control" id="Instructions-text" minlength="5"></textarea>
+                                        <label for="instructions-text" class="col-form-label">Instructions</label>
+                                    </div>
+                                    <div>
+                                        <label class="col-form-label">Categories</label>
+                                        <select x-model="recipe.Categories" id="categoriesSelect"
+                                                class="form-select" multiple>
+                                            <template x-for="category in allCategories">
+                                                <option x-bind:value="category" x-bind:label="category"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" form="addRecipe-form" class="btn btn-primary">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*categories view*@
+            <div x-show="!show" x-data="{
+            allCategories:[],
+            index:0,
+            selectedCategory:'',
+            async init(){this.allCategories = await getCategories();}
+            }">
+                <h1 class="text-center my-4" style="color:white">Categories</h1>
+                <div x-data class="container">
+                    <div class="row row-cols-auto justify-content-center g-4">
+                        <template x-for="category in allCategories">
+                            <div class="col" x-data="{cardCategory:'',init(){this.cardCategory = allCategories[index++]}}">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><span x-text="category"></span></h5>
+                                        <div class="btn-group">
+                                            <button x-on:click="selectedCategory = cardCategory"
+                                                    data-bs-toggle="modal" data-bs-target="#editCategoryModal" class="btn btn-primary">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <button x-on:click="selectedCategory = cardCategory"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteCategoryModal" class="btn btn-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                @*Add Category Modal*@
+                <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryLabel" aria-hidden="true" x-transition>
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 id="addCategoryLabel" class="modal-title">Add Category</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div x-data=" {category:''}">
+                                    <form id="addCategory-form"
+                                          x-on:submit.prevent="await addCategory(category)">
+                                        <div class="mb-3">
+                                            <label for="category-text" class="col-form-label">Category Name</label>
+                                            <input x-model="category" type="text" class="form-control" id="category-text">
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" form="addCategory-form" class="btn btn-primary">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @*Modal for Delete Category*@
+                <div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryLabel" aria-hidden="true" x-transition>
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteCategoryLabel">Delete Category</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="deleteCategory-form" x-on:submit.prevent="await deleteCategory(selectedCategory)">
+                                    <p>Are you sure you want to delete <span x-text="selectedCategory"></span></p>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" form="deleteCategory-form" class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @*Modal for edit Category*@
+                <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryLabel" aria-hidden="true" x-transition>
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editCategoryLabel">Edit Category</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" x-data="{newCategory:''}">
+                                <form id="editCategory-form" x-on:submit.prevent="await editCategory(selectedCategory,newCategory)">
+                                    <div class="form-floating mb-3">
+                                        <input x-model="newCategory" type="text" class="form-control" id="category-text">
+                                        <label for="category-text" class="col-form-label">New title for "<span x-text="selectedCategory"></span>"</label>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" form="editCategory-form" class="btn btn-danger">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+
+    </template>
+
+
+
+    <script type="text/javascript">
+
+        async function registerUser(username, password) {
+            //const antiforgery = await getTokenFromPage();
+            if (username.length == 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please enter a username',
+                })
+                return false;
+            }
+            var passwordValidation = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}/
+            if (!password.match(passwordValidation)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please follow password requirements.',
+                })
+                return false;
+            }
+            const user =
+            {
+                userName: username,
+                password: password,
+            }
+            await fetch(`@Url/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+
+                },
+                body: JSON.stringify(user),
+            }).then((response) => {
+                if (response.status === 200) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'User Created',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        switchNavLogin(true);
+                        return true;
+                    });
+                }
+                else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    });
+                    return false;
+                }
+            })
+        }
+
+        async function loginUser(username, password) {
+            //const antiforgery = await getTokenFromPage();
+            if (username.length == 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please enter a username',
+                })
+                return false;
+            }
+            if (password.length == 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please enter a password',
+                })
+                return false;
+            }
+            const user =
+            {
+                userName: username,
+                password: password,
+            }
+            var response = await fetch(`@Url/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+
+                    'Authorization': 'Bearer ' + localStorage.getItem("token"),
+
+                },
+                body: JSON.stringify(user),
+            })
+            if (response.status === 404) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'User does not exist',
+                });
+                return false;
+            }
+            if (response.status === 401) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Incorrect username or password',
+                });
+                return false;
+            }
+            if (response.status != 200) {
+                swalError();
+                return false;
+            }
+            const responseJson = await response.json();
+            localStorage.setItem('token', responseJson['token']);
+            localStorage.setItem('refreshToken', responseJson['refreshToken']);
+            localStorage.setItem('userName', responseJson['username']);
+            swalSuccesful("Logged In");
+            return true;
+        }
+
+        async function fetchToken() {
+            const response = await fetch("@Url/antiforgery", {
+                method: "GET",
+                credentials: 'include'
+            });
+        }
+
+        async function getTokenFromPage() {
+            const xsrfToken = document.cookie
+                .split("; ")
+                .find(row => row.startsWith("X-XSRF-TOKEN="))
+                .split("=")[1];
+            return xsrfToken;
+        }
+
+        async function getRecipes() {
+            //const antiforgery = await getTokenFromPage();
+            let response = await fetch("@Url/recipes", {
+                method: "GET",
+                headers: {
+
+                    "Authorization": "Bearer " + localStorage.token,
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include'
+            });
+            if (response.statatus === 401) {
+                swalUnauthorized();
+                return [];
+            }
+            let data = await response.json();
+            data.forEach(recipe => {
+                recipe.ingredients = recipe.ingredients.split('\n');
+                recipe.instructions = recipe.instructions.split('\n');
+            });
+            return data;
+        }
+
+        async function getCategories() {
+            //const antiforgery = await getTokenFromPage();
+            let response = await fetch('@Url/categories', {
+                method: 'GET',
+                headers: {
+
+                    "Authorization": "Bearer " + localStorage.token,
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include'
+            });
+            if (response.statatus === 401) {
+                swalUnauthorized();
+                return [];
+            }
+            let categories = await response.json();
+            return categories;
+        }
+
+        async function addRecipe(recipe) {
+            if (recipe.Title.length === 0) {
+                swalErrorMessage("Title can't be empty.");
+                return;
+            }
+
+            if (recipe.Ingredients.length === 0) {
+                swalErrorMessage("Ingredients can't be empty.");
+                return;
+            }
+
+            if (recipe.Instructions.length === 0) {
+                swalErrorMessage("Instructions can't be empty.");
+                return;
+            }
+
+            //const antiforgery = await getTokenFromPage();
+            var response = await fetch(`@Url/recipes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + localStorage.token,
+
+                },
+                body: JSON.stringify(recipe),
+            });
+            defaultResponse(response, "Recipe Added");
+        }
+
+        async function addCategory(category) {
+            if (category.length === 0) {
+                swalErrorMessage("Category title can't be empty.");
+                return;
+            }
+            //const antiforgery = await getTokenFromPage();
+            var response = await fetch(`@Url/categories?category=${category}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + localStorage.token,
+
+                }
+            });
+            defaultResponse(response, "Category Added");
+        }
+
+        async function deleteRecipe(recipe) {
+            //const antiforgery = await getTokenFromPage();
+            var response = await fetch(`@Url/recipes/${recipe.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + localStorage.token,
+
+                }
+            });
+            defaultResponse(response, "Recipe Deleted");
+        }
+
+        async function deleteCategory(category) {
+            //const antiforgery = await getTokenFromPage();
+            var response = await fetch(`@Url/categories/?category=${category}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + localStorage.token,
+
+                }
+            });
+            defaultResponse(response, "Category Deleted");
+        }
+
+        async function editRecipe(recipe) {
+            if (recipe.title.length === 0) {
+                swalErrorMessage("Title can't be empty.");
+                return;
+            }
+
+            if (recipe.ingredients.length === 0) {
+                swalErrorMessage("Ingredients can't be empty.");
+                return;
+            }
+
+            if (recipe.instructions.length === 0) {
+                swalErrorMessage("Instructions can't be empty.");
+                return;
+            }
+
+            //const antiforgery = await getTokenFromPage();
+            var response = await fetch(`@Url/recipes/${recipe.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + localStorage.token,
+
+                },
+                body: JSON.stringify(recipe),
+            });
+            defaultResponse(response, "Recipe Edited");
+
+        }
+
+        async function editCategory(category, newCategory) {
+            //const antiforgery = await getTokenFromPage();
+            if (newCategory.length === 0) {
+                swalErrorMessage("Category title can't be empty.");
+                return;
+            }
+
+            var response = await fetch(`@Url/categories/?category=${category}&newCategory=${newCategory}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + localStorage.token,
+
+                }
+            });
+            defaultResponse(response, "Category Edited");
+        }
+
+        function switchNavLogin(login) {
+            if (login) {
+                document.getElementById("loginNavLink").classList.add("active");
+                document.getElementById("registerNavLink").classList.remove("active");
+            }
+            else {
+                document.getElementById("registerNavLink").classList.add("active");
+                document.getElementById("loginNavLink").classList.remove("active");
+            }
+        }
+
+        function defaultResponse(response, action) {
+            if (response.status === 200) {
+                swalSuccesful(action)
+
+                return;
+            }
+            if (response.status === 401) {
+                swalUnauthorized();
+                return;
+            }
+            swalError();
+        }
+
+        function checkAuthenticated() {
+            if (localStorage.token) {
+                return true;
+            }
+            return false;
+        }
+
+        function logOut() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("username");
+            window.location.reload(true);
+        }
+
+        function swalSuccesful(action) {
+            Swal.fire({
+                icon: 'success',
+                title: `${action}`,
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.reload(true)
+            });
+        }
+
+        function swalUnauthorized() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'You do not have permission for the following action.',
+            });
+        }
+
+        function swalError() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong...',
+            });
+        }
+
+        function swalErrorMessage(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: message,
+            });
+        }
+
+        window.onload = fetchToken;
+    </script>
+</body>
+</html>
