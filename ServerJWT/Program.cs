@@ -275,7 +275,41 @@ app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe rec
 
 app.MapPut("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id, Recipe newRecipe) =>
 {
-    //TODO
+    var metaData = new LinqMetaData(adapter);
+    var categories = await metaData.Category.ToListAsync();
+    var recipeCategory = await metaData.RecipeCategory.Where(r => r.RecipeId == id).ToListAsync();
+    var recipeEntity = new RecipeEntity
+    {
+        Id = newRecipe.Id,
+        Title = newRecipe.Title,
+        Ingredients = newRecipe.Ingredients,
+        Instructions = newRecipe.Instructions,
+        IsNew = false
+    };
+    foreach (var category in newRecipe.Categories)
+    {
+        var categoryExistsInDb = categories.FirstOrDefault(c => c.Name == category);
+        // Check if the category exists in the DB
+        if (categoryExistsInDb == null)
+            return Results.BadRequest($"The `{category}` category is not in the DB please add it before inserting it into the recipe.");
+        // Check if the category is already in the recipe
+        var categoryExistsInRecipe = recipeCategory.FirstOrDefault(r => r.CategoryId == categoryExistsInDb.Id);
+        if (categoryExistsInRecipe == null)
+            adapter.SaveEntity(new RecipeCategoryEntity { RecipeId = id, CategoryId = categoryExistsInDb.Id });
+    }
+    foreach(var elem in recipeCategory)
+    {
+        var categoryEntity = categories.FirstOrDefault(c => c.Id == elem.CategoryId);
+        if(categoryEntity == null)
+        {
+            await adapter.DeleteEntityAsync(elem);
+            return Results.BadRequest($"The with id `{elem.CategoryId}` could not be found in the DB so it was removed.");
+        }
+        if (!newRecipe.Categories.Contains(categoryEntity.Name))
+            await adapter.DeleteEntityAsync(categoryEntity);
+    }
+    await adapter.SaveEntityAsync(recipeEntity);
+    return Results.Ok($"Recipe `{newRecipe.Title}` updated successfully");
 });
 
 app.MapDelete("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id) =>
