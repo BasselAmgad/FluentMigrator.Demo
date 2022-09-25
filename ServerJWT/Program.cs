@@ -255,6 +255,7 @@ app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
 app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe recipe) =>
 {
     var metaData = new LinqMetaData(adapter);
+    var categories = await metaData.Category.ToListAsync();
     var newRecipeEntity = new RecipeEntity
     {
         Id = recipe.Id,
@@ -265,6 +266,9 @@ app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe rec
     await adapter.SaveEntityAsync(newRecipeEntity);
     foreach (var category in recipe.Categories)
     {
+        var categoryExistsInDb = categories.FirstOrDefault(c => c.Name == category);
+        if (categoryExistsInDb == null)
+            return Results.BadRequest($"The `{category}` category is not in the DB please add it before inserting it into the recipe.");
         var categoryEntity = new CategoryEntity { Id = Guid.NewGuid(), Name = category };
         await adapter.SaveEntityAsync(categoryEntity);
         var recipeCategory = new RecipeCategoryEntity { RecipeId = newRecipeEntity.Id, CategoryId = categoryEntity.Id };
@@ -348,7 +352,7 @@ app.MapPut("/categories", [Authorize] async (DataAccessAdapter adapter, string c
     var metaData = new LinqMetaData(adapter);
     var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
     if (categoryEntity is null)
-        return Results.NotFound();
+        return Results.NotFound($"Category {category} does not exist in the DB.");
     categoryEntity.Name = newCategory;
     await adapter.SaveEntityAsync(categoryEntity);
     return Results.Ok($"`{category}` updated to `{newCategory}`");
@@ -401,8 +405,6 @@ app.MapDelete("/recipes/category", [Authorize] async (DataAccessAdapter adapter,
     var tokens = antiforgery.GetAndStoreTokens(context);
     context.Response.Cookies.Append("X-XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
 });*/
-
-
 
 app.UseAuthentication();
 app.UseAuthorization();
