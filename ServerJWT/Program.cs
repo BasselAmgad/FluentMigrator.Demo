@@ -155,10 +155,7 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
 {
     var passwordHasher = new PasswordHasher<UserEntity>();
     var metaData = new LinqMetaData(adapter);
-    var usersList = await metaData.User.ToListAsync();
-    if (usersList is null)
-        throw new Exception("Could not fetch users list from DB");
-    var userData = usersList.FirstOrDefault(u => u.Username == user.UserName);
+    var userData = await metaData.User.FirstOrDefaultAsync();
     if (userData is null)
         return Results.NotFound("User does not exist");
     var verifyPassword = passwordHasher.VerifyHashedPassword(userData, userData.Password, user.Password);
@@ -231,8 +228,6 @@ app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
     var recipeEntity = await metaData.Recipe.FirstOrDefaultAsync(r => r.Id == id);
     if (recipeEntity is null)
         return Results.NotFound("Couldn't find the requested recipe.");
-    var categoriesEntityList = await metaData.Category.ToListAsync();
-    var recipeCategory = await metaData.RecipeCategory.ToListAsync();
     var recipe = new Recipe
     {
         Id = recipeEntity.Id,
@@ -241,11 +236,11 @@ app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
         Instructions = recipeEntity.Instructions,
         Categories = new(),
     };
-    var currentRecipeCategories = recipeCategory.Where(r => r.RecipeId == recipe.Id).ToList();
+    var currentRecipeCategories = await metaData.RecipeCategory.Where(r => r.RecipeId == recipe.Id).ToListAsync();
     foreach (var category in currentRecipeCategories)
     {
         // Get the category name from the category table and add it to the current recipe
-        var currentCategory = categoriesEntityList.FirstOrDefault(c => c.Id == category.CategoryId);
+        var currentCategory = await metaData.Category.FirstOrDefaultAsync(c => c.Id == category.CategoryId);
         if (currentCategory is not null)
             recipe.Categories.Add(currentCategory.Name);
     }
@@ -255,7 +250,6 @@ app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
 app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe recipe) =>
 {
     var metaData = new LinqMetaData(adapter);
-    var categories = await metaData.Category.ToListAsync();
     var newRecipeEntity = new RecipeEntity
     {
         Id = recipe.Id,
@@ -266,7 +260,7 @@ app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe rec
     await adapter.SaveEntityAsync(newRecipeEntity);
     foreach (var category in recipe.Categories)
     {
-        var categoryExistsInDb = categories.FirstOrDefault(c => c.Name == category);
+        var categoryExistsInDb = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
         if (categoryExistsInDb == null)
             return Results.BadRequest($"The `{category}` category is not in the DB please add it before inserting it into the recipe.");
         var categoryEntity = new CategoryEntity { Id = Guid.NewGuid(), Name = category };
@@ -280,7 +274,6 @@ app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe rec
 app.MapPut("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id, Recipe newRecipe) =>
 {
     var metaData = new LinqMetaData(adapter);
-    var categories = await metaData.Category.ToListAsync();
     var recipeCategory = await metaData.RecipeCategory.Where(r => r.RecipeId == id).ToListAsync();
     var recipeEntity = new RecipeEntity
     {
@@ -292,7 +285,7 @@ app.MapPut("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
     };
     foreach (var category in newRecipe.Categories)
     {
-        var categoryExistsInDb = categories.FirstOrDefault(c => c.Name == category);
+        var categoryExistsInDb = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
         // Check if the category exists in the DB
         if (categoryExistsInDb == null)
             return Results.BadRequest($"The `{category}` category is not in the DB please add it before inserting it into the recipe.");
@@ -338,8 +331,7 @@ app.MapGet("/categories", [Authorize] async (DataAccessAdapter adapter) =>
 app.MapPost("/categories", [Authorize] async (DataAccessAdapter adapter, string category) =>
 {
     var metaData = new LinqMetaData(adapter);
-    var categoryList = await metaData.Category.ToListAsync();
-    var categoryData = categoryList.FirstOrDefault(c => c.Name == category);
+    var categoryData = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
     if (categoryData is not null)
         return Results.BadRequest("Category already exists");
     var categoryEntity = new CategoryEntity { Id = Guid.NewGuid(), Name = category };
@@ -375,8 +367,8 @@ app.MapPost("/recipes/category", [Authorize] async (DataAccessAdapter adapter, G
     if (categoryEntity is null) return Results.NotFound("Category not found");
     var recipeEntity = await metaData.Recipe.FirstOrDefaultAsync(r => r.Id == id);
     if (recipeEntity is null) return Results.NotFound("Recipe not found");
-    var recipeCategoryExists = metaData.RecipeCategory
-    .FirstOrDefault(r => r.RecipeId == id && r.CategoryId == categoryEntity.Id);
+    var recipeCategoryExists = await metaData.RecipeCategory
+    .FirstOrDefaultAsync(r => r.RecipeId == id && r.CategoryId == categoryEntity.Id);
     if (recipeCategoryExists is not null) return Results.BadRequest("Category already exists");
     var recipeCategoryEntity = new RecipeCategoryEntity
     {
