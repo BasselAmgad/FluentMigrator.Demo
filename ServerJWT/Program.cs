@@ -296,7 +296,7 @@ app.MapPut("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
     }
     foreach(var elem in recipeCategory)
     {
-        var categoryEntity = categories.FirstOrDefault(c => c.Id == elem.CategoryId);
+        var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Id == elem.CategoryId);
         if(categoryEntity == null)
         {
             await adapter.DeleteEntityAsync(elem);
