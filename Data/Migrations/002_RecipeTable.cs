@@ -1,6 +1,6 @@
-﻿using HomeRecipes.Migrations.Migrations;
+﻿using FluentMigrator;
 
-namespace FluentMigrator.Demo.Migrations
+namespace HomeRecipes.Migrations.Migrations
 {
     [Migration(2)]
     public class _002_RecipeTable : Migration
