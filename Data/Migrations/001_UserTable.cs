@@ -15,7 +15,7 @@ namespace HomeRecipes.Migrations.Migrations
                 .WithColumn("id").AsGuid().NotNullable().PrimaryKey()
                 .WithColumn("username").AsString().NotNullable()
                 .WithColumn("password").AsString().NotNullable()
-                .WithColumn("refreshToken").AsString()
+                .WithColumn("refreshToken").AsString().WithDefaultValue("")
                 .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true); ;
         }
     }
