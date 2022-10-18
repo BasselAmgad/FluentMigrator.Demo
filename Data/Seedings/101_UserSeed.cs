@@ -22,25 +22,33 @@ namespace HomeRecipes.Migrations.Seedings
         {
             new User
             {
-                Id = Guid.NewGuid(),
+                Id = new Guid("3d50a2e1-b8da-4616-a295-911798894905"),
                 Username = "Bassel",
-                Password = hasher.HashPassword(new User(), "p@ssword"),
+                Password = hasher.HashPassword(new User(), "Password123"),
                 IsActive = true,
                 RefreshToken = "",
             },
             new User
             {
-                Id = Guid.NewGuid(),
+                Id =  new Guid("deb81ad5-e200-4acf-af11-96691522e944"),
                 Username = "Omar",
-                Password = hasher.HashPassword(new User(), "p@ssword"),
+                Password = hasher.HashPassword(new User(), "Password123"),
                 IsActive = true,
                 RefreshToken = "",
             },
             new User
             {
-                Id = Guid.NewGuid(),
+                Id =  new Guid("695b29cd-007b-4998-8b83-b63578d8f473"),
                 Username = "Walid",
-                Password = hasher.HashPassword(new User(), "p@ssword"),
+                Password = hasher.HashPassword(new User(), "Password123"),
+                IsActive = true,
+                RefreshToken = "",
+            },
+            new User
+            {
+                Id = new Guid("6ad70b13-dfbd-4293-b1cb-60f046096068"),
+                Username = "admin@admin.com",
+                Password = hasher.HashPassword(new User(), "Aa12345!"),
                 IsActive = true,
                 RefreshToken = "",
             }
