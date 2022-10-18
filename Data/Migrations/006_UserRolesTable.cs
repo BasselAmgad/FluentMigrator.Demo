@@ -17,6 +17,5 @@ namespace HomeRecipes.Migrations.Migrations
                 .WithColumn("role_id").AsGuid().NotNullable().ForeignKey(TableName.Roles, "id")
                 .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true);
         }
-
     }
 }
