@@ -1,9 +1,6 @@
-using HomeRecipesCode.DatabaseSpecific;
-using HomeRecipesCode.EntityClasses;
-using HomeRecipesCode.FactoryClasses;
-using HomeRecipesCode.HelperClasses;
-using HomeRecipesCode.Linq;
-using HomeRecipesCode.RelationClasses;
+using HomeRecipes_UserRoles_v1.DatabaseSpecific;
+using HomeRecipes_UserRoles_v1.EntityClasses;
+using HomeRecipes_UserRoles_v1.Linq;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -173,7 +170,7 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
         {
                 new Claim("Id", userData.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Sub, userData.Username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             }),
         // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
         // but since this is a demo app we can extend it to fit our current need
@@ -220,6 +217,16 @@ app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
         recipesList.Add(currentRecipe);
     }
     return Results.Ok(recipesList);
+});
+
+app.MapGet("/users", [Authorize] async (DataAccessAdapter adapter) =>
+{
+    return Results.NoContent();
+});
+
+app.MapPut("/users", [Authorize] async (DataAccessAdapter adapter, Guid userId, string ) =>
+{
+    return Results.NoContent();
 });
 
 app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id) =>
