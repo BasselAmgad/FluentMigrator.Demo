@@ -11,7 +11,7 @@ namespace HomeRecipes.Migrations.Migrations
         }
         public override void Up()
         {
-            Create.Table(TableName.Roles)
+            Create.Table(TableName.UserRoles)
                 .WithColumn("id").AsInt32().PrimaryKey().Identity()
                 .WithColumn("user_id").AsGuid().NotNullable().ForeignKey(TableName.Users, "id")
                 .WithColumn("role_id").AsGuid().NotNullable().ForeignKey(TableName.Roles, "id")
