@@ -13,7 +13,8 @@ namespace HomeRecipes.Migrations.Migrations
         {
             Create.Table(TableName.Roles)
                 .WithColumn("id").AsInt32().PrimaryKey().Identity()
-                .WithColumn("role").AsString().NotNullable();
+                .WithColumn("role").AsString().NotNullable()
+                .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true);
         }
     }
 }
