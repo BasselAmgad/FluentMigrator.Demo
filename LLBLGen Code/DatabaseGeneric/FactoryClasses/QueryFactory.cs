@@ -7,13 +7,13 @@
 ////////////////////////////////////////////////////////////// 
 using System;
 using System.Linq;
-using HomeRecipesCode.EntityClasses;
-using HomeRecipesCode.HelperClasses;
+using HomeRecipes_UserRoles_v1.EntityClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 using SD.LLBLGen.Pro.QuerySpec.AdapterSpecific;
 using SD.LLBLGen.Pro.QuerySpec;
 
-namespace HomeRecipesCode.FactoryClasses
+namespace HomeRecipes_UserRoles_v1.FactoryClasses
 {
 	/// <summary>Factory class to produce DynamicQuery instances and EntityQuery instances</summary>
 	public partial class QueryFactory : QueryFactoryBase2
@@ -27,8 +27,14 @@ namespace HomeRecipesCode.FactoryClasses
 		/// <summary>Creates and returns a new EntityQuery for the RecipeCategory entity</summary>
 		public EntityQuery<RecipeCategoryEntity> RecipeCategory { get { return Create<RecipeCategoryEntity>(); } }
 
+		/// <summary>Creates and returns a new EntityQuery for the Role entity</summary>
+		public EntityQuery<RoleEntity> Role { get { return Create<RoleEntity>(); } }
+
 		/// <summary>Creates and returns a new EntityQuery for the User entity</summary>
 		public EntityQuery<UserEntity> User { get { return Create<UserEntity>(); } }
+
+		/// <summary>Creates and returns a new EntityQuery for the UserRole entity</summary>
+		public EntityQuery<UserRoleEntity> UserRole { get { return Create<UserRoleEntity>(); } }
 
 		/// <inheritdoc/>
 		protected override IElementCreatorCore CreateElementCreator() { return new ElementCreator(); }

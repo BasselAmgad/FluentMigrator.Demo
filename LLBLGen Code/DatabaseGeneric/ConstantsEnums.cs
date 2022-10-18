@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 using System;
 
-namespace HomeRecipesCode
+namespace HomeRecipes_UserRoles_v1
 {
 
 
@@ -20,8 +20,12 @@ namespace HomeRecipesCode
 		RecipeEntity,
 		///<summary>RecipeCategory</summary>
 		RecipeCategoryEntity,
+		///<summary>Role</summary>
+		RoleEntity,
 		///<summary>User</summary>
-		UserEntity
+		UserEntity,
+		///<summary>UserRole</summary>
+		UserRoleEntity
 	}
 
 

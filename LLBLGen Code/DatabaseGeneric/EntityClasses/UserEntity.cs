@@ -10,13 +10,13 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using HomeRecipesCode.HelperClasses;
-using HomeRecipesCode.FactoryClasses;
-using HomeRecipesCode.RelationClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
+using HomeRecipes_UserRoles_v1.RelationClasses;
 
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.EntityClasses
+namespace HomeRecipes_UserRoles_v1.EntityClasses
 {
 	// __LLBLGENPRO_USER_CODE_REGION_START AdditionalNamespaces
 	// __LLBLGENPRO_USER_CODE_REGION_END
@@ -28,6 +28,7 @@ namespace HomeRecipesCode.EntityClasses
 		// __LLBLGENPRO_USER_CODE_REGION_END
 	
 	{
+		private EntityCollection<UserRoleEntity> _userRoles;
 		// __LLBLGENPRO_USER_CODE_REGION_START PrivateMembers
 		// __LLBLGENPRO_USER_CODE_REGION_END
 
@@ -37,6 +38,8 @@ namespace HomeRecipesCode.EntityClasses
 		/// <summary>All names of fields mapped onto a relation. Usable for in-memory filtering</summary>
 		public static partial class MemberNames
 		{
+			/// <summary>Member name UserRoles</summary>
+			public static readonly string UserRoles = "UserRoles";
 		}
 
 		/// <summary>Static meta-data storage for navigator related information</summary>
@@ -44,7 +47,8 @@ namespace HomeRecipesCode.EntityClasses
 		{
 			public UserEntityStaticMetaData()
 			{
-				SetEntityCoreInfo("UserEntity", InheritanceHierarchyType.None, false, (int)HomeRecipesCode.EntityType.UserEntity, typeof(UserEntity), typeof(UserEntityFactory), false);
+				SetEntityCoreInfo("UserEntity", InheritanceHierarchyType.None, false, (int)HomeRecipes_UserRoles_v1.EntityType.UserEntity, typeof(UserEntity), typeof(UserEntityFactory), false);
+				AddNavigatorMetaData<UserEntity, EntityCollection<UserRoleEntity>>("UserRoles", a => a._userRoles, (a, b) => a._userRoles = b, a => a.UserRoles, () => new UserRelations().UserRoleEntityUsingUserId, typeof(UserRoleEntity), (int)HomeRecipes_UserRoles_v1.EntityType.UserRoleEntity);
 			}
 		}
 
@@ -96,6 +100,10 @@ namespace HomeRecipesCode.EntityClasses
 			// __LLBLGENPRO_USER_CODE_REGION_START DeserializationConstructor
 			// __LLBLGENPRO_USER_CODE_REGION_END
 		}
+
+		/// <summary>Creates a new IRelationPredicateBucket object which contains the predicate expression and relation collection to fetch the related entities of type 'UserRole' to this entity.</summary>
+		/// <returns></returns>
+		public virtual IRelationPredicateBucket GetRelationInfoUserRoles() { return CreateRelationInfoForNavigator("UserRoles"); }
 		
 		/// <inheritdoc/>
 		protected override EntityStaticMetaDataBase GetEntityStaticMetaData() {	return _staticMetaData; }
@@ -128,6 +136,10 @@ namespace HomeRecipesCode.EntityClasses
 
 		/// <summary>The relations object holding all relations of this entity with other entity classes.</summary>
 		public static UserRelations Relations { get { return _relationsFactory; } }
+
+		/// <summary>Creates a new PrefetchPathElement2 object which contains all the information to prefetch the related entities of type 'UserRole' for this entity.</summary>
+		/// <returns>Ready to use IPrefetchPathElement2 implementation.</returns>
+		public static IPrefetchPathElement2 PrefetchPathUserRoles { get { return _staticMetaData.GetPrefetchPathElement("UserRoles", CommonEntityBase.CreateEntityCollection<UserRoleEntity>()); } }
 
 		/// <summary>The Id property of the Entity User<br/><br/></summary>
 		/// <remarks>Mapped on  table field: "User"."id".<br/>Table field type characteristics (type, precision, scale, length): UniqueIdentifier, 0, 0, 0.<br/>Table field behavior characteristics (is nullable, is PK, is identity): false, true, false</remarks>
@@ -168,6 +180,10 @@ namespace HomeRecipesCode.EntityClasses
 			get { return (System.String)GetValue((int)UserFieldIndex.Username, true); }
 			set	{ SetValue((int)UserFieldIndex.Username, value); }
 		}
+
+		/// <summary>Gets the EntityCollection with the related entities of type 'UserRoleEntity' which are related to this entity via a relation of type '1:n'. If the EntityCollection hasn't been fetched yet, the collection returned will be empty.<br/><br/></summary>
+		[TypeContainedAttribute(typeof(UserRoleEntity))]
+		public virtual EntityCollection<UserRoleEntity> UserRoles { get { return GetOrCreateEntityCollection<UserRoleEntity, UserRoleEntityFactory>("User", true, false, ref _userRoles); } }
 		// __LLBLGENPRO_USER_CODE_REGION_START CustomEntityCode
 		// __LLBLGENPRO_USER_CODE_REGION_END
 
@@ -175,7 +191,7 @@ namespace HomeRecipesCode.EntityClasses
 	}
 }
 
-namespace HomeRecipesCode
+namespace HomeRecipes_UserRoles_v1
 {
 	public enum UserFieldIndex
 	{
@@ -194,17 +210,23 @@ namespace HomeRecipesCode
 	}
 }
 
-namespace HomeRecipesCode.RelationClasses
+namespace HomeRecipes_UserRoles_v1.RelationClasses
 {
 	/// <summary>Implements the relations factory for the entity: User. </summary>
 	public partial class UserRelations: RelationFactory
 	{
+		/// <summary>Returns a new IEntityRelation object, between UserEntity and UserRoleEntity over the 1:n relation they have, using the relation between the fields: User.Id - UserRole.UserId</summary>
+		public virtual IEntityRelation UserRoleEntityUsingUserId
+		{
+			get { return ModelInfoProviderSingleton.GetInstance().CreateRelation(RelationType.OneToMany, "UserRoles", true, new[] { UserFields.Id, UserRoleFields.UserId }); }
+		}
 
 	}
 	
 	/// <summary>Static class which is used for providing relationship instances which are re-used internally for syncing</summary>
 	internal static class StaticUserRelations
 	{
+		internal static readonly IEntityRelation UserRoleEntityUsingUserIdStatic = new UserRelations().UserRoleEntityUsingUserId;
 
 		/// <summary>CTor</summary>
 		static StaticUserRelations() { }

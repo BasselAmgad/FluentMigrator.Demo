@@ -6,11 +6,11 @@
 // Templates vendor: Solutions Design.
 //////////////////////////////////////////////////////////////
 using System;
-using HomeRecipesCode.FactoryClasses;
-using HomeRecipesCode.HelperClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.RelationClasses
+namespace HomeRecipes_UserRoles_v1.RelationClasses
 {
 	/// <summary>Class to define dynamic relations for queries.</summary>
 	[Serializable]
@@ -51,7 +51,7 @@ namespace HomeRecipesCode.RelationClasses
 		/// <param name="rightOperand">The right operand which is an entity type.</param>
 		/// <param name="aliasRightOperand">The alias of the right operand. If you don't want to / need to alias the right operand (only alias if you have to), specify string.Empty.</param>
 		/// <param name="onClause">The on clause for the join.</param>
-		public DynamicRelation(DerivedTableDefinition leftOperand, JoinHint joinType, HomeRecipesCode.EntityType rightOperand, string aliasRightOperand, IPredicate onClause)
+		public DynamicRelation(DerivedTableDefinition leftOperand, JoinHint joinType, HomeRecipes_UserRoles_v1.EntityType rightOperand, string aliasRightOperand, IPredicate onClause)
 		{
 			this.InitClass(joinType, string.Empty, aliasRightOperand, onClause, leftOperand, GeneralEntityFactory.Create(rightOperand));
 		}
@@ -63,7 +63,7 @@ namespace HomeRecipesCode.RelationClasses
 		/// <param name="aliasLeftOperand">The alias of the left operand. If you don't want to / need to alias the left operand (only alias if you have to), specify string.Empty.</param>
 		/// <param name="aliasRightOperand">The alias of the right operand. If you don't want to / need to alias the right operand (only alias if you have to), specify string.Empty.</param>
 		/// <param name="onClause">The on clause for the join.</param>
-		public DynamicRelation(HomeRecipesCode.EntityType leftOperand, JoinHint joinType, HomeRecipesCode.EntityType rightOperand, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
+		public DynamicRelation(HomeRecipes_UserRoles_v1.EntityType leftOperand, JoinHint joinType, HomeRecipes_UserRoles_v1.EntityType rightOperand, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
 		{
 			this.InitClass(joinType, aliasLeftOperand, aliasRightOperand, onClause, GeneralEntityFactory.Create(leftOperand), GeneralEntityFactory.Create(rightOperand));
 		}
@@ -75,7 +75,7 @@ namespace HomeRecipesCode.RelationClasses
 		/// <param name="aliasLeftOperand">The alias of the left operand. If you don't want to / need to alias the left operand (only alias if you have to), specify string.Empty.</param>
 		/// <param name="aliasRightOperand">The alias of the right operand. If you don't want to / need to alias the right operand (only alias if you have to), specify string.Empty.</param>
 		/// <param name="onClause">The on clause for the join.</param>
-		public DynamicRelation(IEntityFieldCore leftOperand, JoinHint joinType, HomeRecipesCode.EntityType rightOperand, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
+		public DynamicRelation(IEntityFieldCore leftOperand, JoinHint joinType, HomeRecipes_UserRoles_v1.EntityType rightOperand, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
 		{
 			this.InitClass(joinType, aliasLeftOperand, aliasRightOperand, onClause, leftOperand, GeneralEntityFactory.Create(rightOperand));
 		}

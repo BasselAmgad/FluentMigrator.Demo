@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 using SD.LLBLGen.Pro.DQE.SqlServer;
 
-namespace HomeRecipesCode.DatabaseSpecific
+namespace HomeRecipes_UserRoles_v1.DatabaseSpecific
 {	
 	// __LLBLGENPRO_USER_CODE_REGION_START AdditionalNamespaces
 	// __LLBLGENPRO_USER_CODE_REGION_END

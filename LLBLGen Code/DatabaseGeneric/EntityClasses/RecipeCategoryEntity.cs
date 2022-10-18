@@ -10,13 +10,13 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using HomeRecipesCode.HelperClasses;
-using HomeRecipesCode.FactoryClasses;
-using HomeRecipesCode.RelationClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
+using HomeRecipes_UserRoles_v1.RelationClasses;
 
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.EntityClasses
+namespace HomeRecipes_UserRoles_v1.EntityClasses
 {
 	// __LLBLGENPRO_USER_CODE_REGION_START AdditionalNamespaces
 	// __LLBLGENPRO_USER_CODE_REGION_END
@@ -50,9 +50,9 @@ namespace HomeRecipesCode.EntityClasses
 		{
 			public RecipeCategoryEntityStaticMetaData()
 			{
-				SetEntityCoreInfo("RecipeCategoryEntity", InheritanceHierarchyType.None, false, (int)HomeRecipesCode.EntityType.RecipeCategoryEntity, typeof(RecipeCategoryEntity), typeof(RecipeCategoryEntityFactory), false);
-				AddNavigatorMetaData<RecipeCategoryEntity, CategoryEntity>("Category", "RecipeCategories", (a, b) => a._category = b, a => a._category, (a, b) => a.Category = b, HomeRecipesCode.RelationClasses.StaticRecipeCategoryRelations.CategoryEntityUsingCategoryIdStatic, ()=>new RecipeCategoryRelations().CategoryEntityUsingCategoryId, null, new int[] { (int)RecipeCategoryFieldIndex.CategoryId }, null, true, (int)HomeRecipesCode.EntityType.CategoryEntity);
-				AddNavigatorMetaData<RecipeCategoryEntity, RecipeEntity>("Recipe", "RecipeCategories", (a, b) => a._recipe = b, a => a._recipe, (a, b) => a.Recipe = b, HomeRecipesCode.RelationClasses.StaticRecipeCategoryRelations.RecipeEntityUsingRecipeIdStatic, ()=>new RecipeCategoryRelations().RecipeEntityUsingRecipeId, null, new int[] { (int)RecipeCategoryFieldIndex.RecipeId }, null, true, (int)HomeRecipesCode.EntityType.RecipeEntity);
+				SetEntityCoreInfo("RecipeCategoryEntity", InheritanceHierarchyType.None, false, (int)HomeRecipes_UserRoles_v1.EntityType.RecipeCategoryEntity, typeof(RecipeCategoryEntity), typeof(RecipeCategoryEntityFactory), false);
+				AddNavigatorMetaData<RecipeCategoryEntity, CategoryEntity>("Category", "RecipeCategories", (a, b) => a._category = b, a => a._category, (a, b) => a.Category = b, HomeRecipes_UserRoles_v1.RelationClasses.StaticRecipeCategoryRelations.CategoryEntityUsingCategoryIdStatic, ()=>new RecipeCategoryRelations().CategoryEntityUsingCategoryId, null, new int[] { (int)RecipeCategoryFieldIndex.CategoryId }, null, true, (int)HomeRecipes_UserRoles_v1.EntityType.CategoryEntity);
+				AddNavigatorMetaData<RecipeCategoryEntity, RecipeEntity>("Recipe", "RecipeCategories", (a, b) => a._recipe = b, a => a._recipe, (a, b) => a.Recipe = b, HomeRecipes_UserRoles_v1.RelationClasses.StaticRecipeCategoryRelations.RecipeEntityUsingRecipeIdStatic, ()=>new RecipeCategoryRelations().RecipeEntityUsingRecipeId, null, new int[] { (int)RecipeCategoryFieldIndex.RecipeId }, null, true, (int)HomeRecipes_UserRoles_v1.EntityType.RecipeEntity);
 			}
 		}
 
@@ -206,7 +206,7 @@ namespace HomeRecipesCode.EntityClasses
 	}
 }
 
-namespace HomeRecipesCode
+namespace HomeRecipes_UserRoles_v1
 {
 	public enum RecipeCategoryFieldIndex
 	{
@@ -223,7 +223,7 @@ namespace HomeRecipesCode
 	}
 }
 
-namespace HomeRecipesCode.RelationClasses
+namespace HomeRecipes_UserRoles_v1.RelationClasses
 {
 	/// <summary>Implements the relations factory for the entity: RecipeCategory. </summary>
 	public partial class RecipeCategoryRelations: RelationFactory

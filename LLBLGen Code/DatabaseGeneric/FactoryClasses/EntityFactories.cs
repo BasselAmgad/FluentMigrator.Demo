@@ -7,12 +7,12 @@
 //////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
-using HomeRecipesCode.EntityClasses;
-using HomeRecipesCode.HelperClasses;
-using HomeRecipesCode.RelationClasses;
+using HomeRecipes_UserRoles_v1.EntityClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
+using HomeRecipes_UserRoles_v1.RelationClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.FactoryClasses
+namespace HomeRecipes_UserRoles_v1.FactoryClasses
 {
 	// __LLBLGENPRO_USER_CODE_REGION_START AdditionalNamespaces
 	// __LLBLGENPRO_USER_CODE_REGION_END
@@ -29,7 +29,7 @@ namespace HomeRecipesCode.FactoryClasses
 		/// <param name="entityName">Name of the entity.</param>
 		/// <param name="typeOfEntity">The type of entity.</param>
 		/// <param name="isInHierarchy">If true, the entity of this factory is in an inheritance hierarchy, false otherwise</param>
-		public EntityFactoryBase2(string entityName, HomeRecipesCode.EntityType typeOfEntity, bool isInHierarchy) : base(entityName, (int)typeOfEntity)
+		public EntityFactoryBase2(string entityName, HomeRecipes_UserRoles_v1.EntityType typeOfEntity, bool isInHierarchy) : base(entityName, (int)typeOfEntity)
 		{
 			_isInHierarchy = isInHierarchy;
 		}
@@ -38,7 +38,7 @@ namespace HomeRecipesCode.FactoryClasses
 		public override IEntityFields2 CreateFields() { return ModelInfoProviderSingleton.GetInstance().GetEntityFields(this.ForEntityName); }
 		
 		/// <inheritdoc/>
-		public override IEntity2 CreateEntityFromEntityTypeValue(int entityTypeValue) {	return GeneralEntityFactory.Create((HomeRecipesCode.EntityType)entityTypeValue); }
+		public override IEntity2 CreateEntityFromEntityTypeValue(int entityTypeValue) {	return GeneralEntityFactory.Create((HomeRecipes_UserRoles_v1.EntityType)entityTypeValue); }
 
 		/// <inheritdoc/>
 		public override IRelationCollection CreateHierarchyRelations(string objectAlias) { return ModelInfoProviderSingleton.GetInstance().GetHierarchyRelations(this.ForEntityName, objectAlias); }
@@ -70,7 +70,7 @@ namespace HomeRecipesCode.FactoryClasses
 	public partial class CategoryEntityFactory : EntityFactoryBase2<CategoryEntity> 
 	{
 		/// <summary>CTor</summary>
-		public CategoryEntityFactory() : base("CategoryEntity", HomeRecipesCode.EntityType.CategoryEntity, false) { }
+		public CategoryEntityFactory() : base("CategoryEntity", HomeRecipes_UserRoles_v1.EntityType.CategoryEntity, false) { }
 		/// <inheritdoc/>
 		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new CategoryEntity(fields); }
 	}
@@ -80,7 +80,7 @@ namespace HomeRecipesCode.FactoryClasses
 	public partial class RecipeEntityFactory : EntityFactoryBase2<RecipeEntity> 
 	{
 		/// <summary>CTor</summary>
-		public RecipeEntityFactory() : base("RecipeEntity", HomeRecipesCode.EntityType.RecipeEntity, false) { }
+		public RecipeEntityFactory() : base("RecipeEntity", HomeRecipes_UserRoles_v1.EntityType.RecipeEntity, false) { }
 		/// <inheritdoc/>
 		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new RecipeEntity(fields); }
 	}
@@ -90,9 +90,19 @@ namespace HomeRecipesCode.FactoryClasses
 	public partial class RecipeCategoryEntityFactory : EntityFactoryBase2<RecipeCategoryEntity> 
 	{
 		/// <summary>CTor</summary>
-		public RecipeCategoryEntityFactory() : base("RecipeCategoryEntity", HomeRecipesCode.EntityType.RecipeCategoryEntity, false) { }
+		public RecipeCategoryEntityFactory() : base("RecipeCategoryEntity", HomeRecipes_UserRoles_v1.EntityType.RecipeCategoryEntity, false) { }
 		/// <inheritdoc/>
 		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new RecipeCategoryEntity(fields); }
+	}
+
+	/// <summary>Factory to create new, empty RoleEntity objects.</summary>
+	[Serializable]
+	public partial class RoleEntityFactory : EntityFactoryBase2<RoleEntity> 
+	{
+		/// <summary>CTor</summary>
+		public RoleEntityFactory() : base("RoleEntity", HomeRecipes_UserRoles_v1.EntityType.RoleEntity, false) { }
+		/// <inheritdoc/>
+		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new RoleEntity(fields); }
 	}
 
 	/// <summary>Factory to create new, empty UserEntity objects.</summary>
@@ -100,9 +110,19 @@ namespace HomeRecipesCode.FactoryClasses
 	public partial class UserEntityFactory : EntityFactoryBase2<UserEntity> 
 	{
 		/// <summary>CTor</summary>
-		public UserEntityFactory() : base("UserEntity", HomeRecipesCode.EntityType.UserEntity, false) { }
+		public UserEntityFactory() : base("UserEntity", HomeRecipes_UserRoles_v1.EntityType.UserEntity, false) { }
 		/// <inheritdoc/>
 		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new UserEntity(fields); }
+	}
+
+	/// <summary>Factory to create new, empty UserRoleEntity objects.</summary>
+	[Serializable]
+	public partial class UserRoleEntityFactory : EntityFactoryBase2<UserRoleEntity> 
+	{
+		/// <summary>CTor</summary>
+		public UserRoleEntityFactory() : base("UserRoleEntity", HomeRecipes_UserRoles_v1.EntityType.UserRoleEntity, false) { }
+		/// <inheritdoc/>
+		protected override IEntity2 CreateImpl(IEntityFields2 fields) { return new UserRoleEntity(fields); }
 	}
 
 	/// <summary>Factory to create new, empty Entity objects based on the entity type specified. Uses  entity specific factory objects</summary>
@@ -112,7 +132,7 @@ namespace HomeRecipesCode.FactoryClasses
 		/// <summary>Creates a new, empty Entity object of the type specified</summary>
 		/// <param name="entityTypeToCreate">The entity type to create.</param>
 		/// <returns>A new, empty Entity object.</returns>
-		public static IEntity2 Create(HomeRecipesCode.EntityType entityTypeToCreate)
+		public static IEntity2 Create(HomeRecipes_UserRoles_v1.EntityType entityTypeToCreate)
 		{
 			var factoryToUse = EntityFactoryFactory.GetFactory(entityTypeToCreate);
 			IEntity2 toReturn = null;
@@ -133,9 +153,9 @@ namespace HomeRecipesCode.FactoryClasses
 		/// <summary>Initializes the <see cref="EntityFactoryFactory"/> class.</summary>
 		static EntityFactoryFactory()
 		{
-			foreach(int entityTypeValue in Enum.GetValues(typeof(HomeRecipesCode.EntityType)))
+			foreach(int entityTypeValue in Enum.GetValues(typeof(HomeRecipes_UserRoles_v1.EntityType)))
 			{
-				var factory = GetFactory((HomeRecipesCode.EntityType)entityTypeValue);
+				var factory = GetFactory((HomeRecipes_UserRoles_v1.EntityType)entityTypeValue);
 				_factoryPerType.Add(factory.ForEntityType ?? factory.Create().GetType(), factory);
 			}
 		}
@@ -145,21 +165,25 @@ namespace HomeRecipesCode.FactoryClasses
 		/// <returns>factory to use or null if not found</returns>
 		public static IEntityFactory2 GetFactory(Type typeOfEntity) { return _factoryPerType.GetValue(typeOfEntity); }
 
-		/// <summary>Gets the factory of the entity with the HomeRecipesCode.EntityType specified</summary>
+		/// <summary>Gets the factory of the entity with the HomeRecipes_UserRoles_v1.EntityType specified</summary>
 		/// <param name="typeOfEntity">The type of entity.</param>
 		/// <returns>factory to use or null if not found</returns>
-		public static IEntityFactory2 GetFactory(HomeRecipesCode.EntityType typeOfEntity)
+		public static IEntityFactory2 GetFactory(HomeRecipes_UserRoles_v1.EntityType typeOfEntity)
 		{
 			switch(typeOfEntity)
 			{
-				case HomeRecipesCode.EntityType.CategoryEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.CategoryEntity:
 					return new CategoryEntityFactory();
-				case HomeRecipesCode.EntityType.RecipeEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.RecipeEntity:
 					return new RecipeEntityFactory();
-				case HomeRecipesCode.EntityType.RecipeCategoryEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.RecipeCategoryEntity:
 					return new RecipeCategoryEntityFactory();
-				case HomeRecipesCode.EntityType.UserEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.RoleEntity:
+					return new RoleEntityFactory();
+				case HomeRecipes_UserRoles_v1.EntityType.UserEntity:
 					return new UserEntityFactory();
+				case HomeRecipes_UserRoles_v1.EntityType.UserRoleEntity:
+					return new UserRoleEntityFactory();
 				default:
 					return null;
 			}
@@ -169,7 +193,7 @@ namespace HomeRecipesCode.FactoryClasses
 	/// <summary>Element creator for creating project elements from somewhere else, like inside Linq providers.</summary>
 	public class ElementCreator : ElementCreatorBase, IElementCreator2
 	{
-		/// <summary>Gets the factory of the Entity type with the HomeRecipesCode.EntityType value passed in</summary>
+		/// <summary>Gets the factory of the Entity type with the HomeRecipes_UserRoles_v1.EntityType value passed in</summary>
 		/// <param name="entityTypeValue">The entity type value.</param>
 		/// <returns>the entity factory of the entity type or null if not found</returns>
 		public IEntityFactory2 GetFactory(int entityTypeValue) { return (IEntityFactory2)this.GetFactoryImpl(entityTypeValue); }
@@ -205,23 +229,23 @@ namespace HomeRecipesCode.FactoryClasses
 		/// <inheritdoc/>
 		public override IDynamicRelation CreateDynamicRelation(DerivedTableDefinition leftOperand, JoinHint joinType, string rightOperandEntityName, string aliasRightOperand, IPredicate onClause)
 		{
-			return new DynamicRelation(leftOperand, joinType, (HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), rightOperandEntityName, false), aliasRightOperand, onClause);
+			return new DynamicRelation(leftOperand, joinType, (HomeRecipes_UserRoles_v1.EntityType)Enum.Parse(typeof(HomeRecipes_UserRoles_v1.EntityType), rightOperandEntityName, false), aliasRightOperand, onClause);
 		}
 
 		/// <inheritdoc/>
 		public override IDynamicRelation CreateDynamicRelation(string leftOperandEntityName, JoinHint joinType, string rightOperandEntityName, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
 		{
-			return new DynamicRelation((HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), leftOperandEntityName, false), joinType, (HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), rightOperandEntityName, false), aliasLeftOperand, aliasRightOperand, onClause);
+			return new DynamicRelation((HomeRecipes_UserRoles_v1.EntityType)Enum.Parse(typeof(HomeRecipes_UserRoles_v1.EntityType), leftOperandEntityName, false), joinType, (HomeRecipes_UserRoles_v1.EntityType)Enum.Parse(typeof(HomeRecipes_UserRoles_v1.EntityType), rightOperandEntityName, false), aliasLeftOperand, aliasRightOperand, onClause);
 		}
 		
 		/// <inheritdoc/>
 		public override IDynamicRelation CreateDynamicRelation(IEntityFieldCore leftOperand, JoinHint joinType, string rightOperandEntityName, string aliasLeftOperand, string aliasRightOperand, IPredicate onClause)
 		{
-			return new DynamicRelation(leftOperand, joinType, (HomeRecipesCode.EntityType)Enum.Parse(typeof(HomeRecipesCode.EntityType), rightOperandEntityName, false), aliasLeftOperand, aliasRightOperand, onClause);
+			return new DynamicRelation(leftOperand, joinType, (HomeRecipes_UserRoles_v1.EntityType)Enum.Parse(typeof(HomeRecipes_UserRoles_v1.EntityType), rightOperandEntityName, false), aliasLeftOperand, aliasRightOperand, onClause);
 		}
 		
 		/// <inheritdoc/>
-		protected override IEntityFactoryCore GetFactoryImpl(int entityTypeValue) { return EntityFactoryFactory.GetFactory((HomeRecipesCode.EntityType)entityTypeValue); }
+		protected override IEntityFactoryCore GetFactoryImpl(int entityTypeValue) { return EntityFactoryFactory.GetFactory((HomeRecipes_UserRoles_v1.EntityType)entityTypeValue); }
 
 		/// <inheritdoc/>
 		protected override IEntityFactoryCore GetFactoryImpl(Type typeOfEntity) { return EntityFactoryFactory.GetFactory(typeOfEntity);	}

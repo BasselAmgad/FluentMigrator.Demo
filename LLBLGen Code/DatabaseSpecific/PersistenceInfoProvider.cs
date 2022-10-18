@@ -8,7 +8,7 @@
 using System;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.DatabaseSpecific
+namespace HomeRecipes_UserRoles_v1.DatabaseSpecific
 {
 	/// <summary>Singleton implementation of the PersistenceInfoProvider. This class is the singleton wrapper through which the actual instance is retrieved.</summary>
 	internal static class PersistenceInfoProviderSingleton
@@ -39,7 +39,9 @@ namespace HomeRecipesCode.DatabaseSpecific
 			InitCategoryEntityMappings();
 			InitRecipeEntityMappings();
 			InitRecipeCategoryEntityMappings();
+			InitRoleEntityMappings();
 			InitUserEntityMappings();
+			InitUserRoleEntityMappings();
 		}
 
 		/// <summary>Inits CategoryEntity's mappings</summary>
@@ -72,6 +74,15 @@ namespace HomeRecipesCode.DatabaseSpecific
 			this.AddElementFieldMapping("RecipeCategoryEntity", "RecipeId", "recipe_id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 3);
 		}
 
+		/// <summary>Inits RoleEntity's mappings</summary>
+		private void InitRoleEntityMappings()
+		{
+			this.AddElementMapping("RoleEntity", @"HomeRecipes", @"dbo", "Roles", 3, 0);
+			this.AddElementFieldMapping("RoleEntity", "Id", "id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 0);
+			this.AddElementFieldMapping("RoleEntity", "IsActive", "is_active", false, "Bit", 0, 0, 0, false, "", null, typeof(System.Boolean), 1);
+			this.AddElementFieldMapping("RoleEntity", "RoleName", "roleName", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 2);
+		}
+
 		/// <summary>Inits UserEntity's mappings</summary>
 		private void InitUserEntityMappings()
 		{
@@ -81,6 +92,16 @@ namespace HomeRecipesCode.DatabaseSpecific
 			this.AddElementFieldMapping("UserEntity", "Password", "password", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 2);
 			this.AddElementFieldMapping("UserEntity", "RefreshToken", "refreshToken", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 3);
 			this.AddElementFieldMapping("UserEntity", "Username", "username", false, "NVarChar", 255, 0, 0, false, "", null, typeof(System.String), 4);
+		}
+
+		/// <summary>Inits UserRoleEntity's mappings</summary>
+		private void InitUserRoleEntityMappings()
+		{
+			this.AddElementMapping("UserRoleEntity", @"HomeRecipes", @"dbo", "UserRoles", 4, 0);
+			this.AddElementFieldMapping("UserRoleEntity", "Id", "id", false, "Int", 0, 10, 0, true, "SCOPE_IDENTITY()", null, typeof(System.Int32), 0);
+			this.AddElementFieldMapping("UserRoleEntity", "IsActive", "is_active", false, "Bit", 0, 0, 0, false, "", null, typeof(System.Boolean), 1);
+			this.AddElementFieldMapping("UserRoleEntity", "RoleId", "role_id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 2);
+			this.AddElementFieldMapping("UserRoleEntity", "UserId", "user_id", false, "UniqueIdentifier", 0, 0, 0, false, "", null, typeof(System.Guid), 3);
 		}
 
 	}

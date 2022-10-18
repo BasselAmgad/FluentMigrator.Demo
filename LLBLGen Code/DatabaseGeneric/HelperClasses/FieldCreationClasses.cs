@@ -8,7 +8,7 @@
 using System;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.HelperClasses
+namespace HomeRecipes_UserRoles_v1.HelperClasses
 {
 	/// <summary>Field Creation Class for entity CategoryEntity</summary>
 	public partial class CategoryFields
@@ -49,6 +49,17 @@ namespace HomeRecipesCode.HelperClasses
 		public static EntityField2 RecipeId { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(RecipeCategoryFieldIndex.RecipeId); }}
 	}
 
+	/// <summary>Field Creation Class for entity RoleEntity</summary>
+	public partial class RoleFields
+	{
+		/// <summary>Creates a new RoleEntity.Id field instance</summary>
+		public static EntityField2 Id { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(RoleFieldIndex.Id); }}
+		/// <summary>Creates a new RoleEntity.IsActive field instance</summary>
+		public static EntityField2 IsActive { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(RoleFieldIndex.IsActive); }}
+		/// <summary>Creates a new RoleEntity.RoleName field instance</summary>
+		public static EntityField2 RoleName { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(RoleFieldIndex.RoleName); }}
+	}
+
 	/// <summary>Field Creation Class for entity UserEntity</summary>
 	public partial class UserFields
 	{
@@ -62,6 +73,19 @@ namespace HomeRecipesCode.HelperClasses
 		public static EntityField2 RefreshToken { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(UserFieldIndex.RefreshToken); }}
 		/// <summary>Creates a new UserEntity.Username field instance</summary>
 		public static EntityField2 Username { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(UserFieldIndex.Username); }}
+	}
+
+	/// <summary>Field Creation Class for entity UserRoleEntity</summary>
+	public partial class UserRoleFields
+	{
+		/// <summary>Creates a new UserRoleEntity.Id field instance</summary>
+		public static EntityField2 Id { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(UserRoleFieldIndex.Id); }}
+		/// <summary>Creates a new UserRoleEntity.IsActive field instance</summary>
+		public static EntityField2 IsActive { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(UserRoleFieldIndex.IsActive); }}
+		/// <summary>Creates a new UserRoleEntity.RoleId field instance</summary>
+		public static EntityField2 RoleId { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(UserRoleFieldIndex.RoleId); }}
+		/// <summary>Creates a new UserRoleEntity.UserId field instance</summary>
+		public static EntityField2 UserId { get { return ModelInfoProviderSingleton.GetInstance().CreateField2(UserRoleFieldIndex.UserId); }}
 	}
 	
 

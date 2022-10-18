@@ -15,6 +15,7 @@ namespace FluentMigrator.Demo.Extensions
                 {
                     databaseService.CreateDatabase("HomeRecipes");
                     migrationService.ListMigrations();
+                    migrationService.MigrateDown(0);
                     migrationService.MigrateUp();
                 }
                 catch

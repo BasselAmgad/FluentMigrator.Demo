@@ -8,7 +8,7 @@ namespace HomeRecipes.Migrations.Seedings
     {
         public override void Down()
         {
-            throw new NotImplementedException();
+
         }
 
         public override void Up()

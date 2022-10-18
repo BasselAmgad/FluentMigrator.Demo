@@ -6,12 +6,12 @@
 // Templates vendor: Solutions Design.
 //////////////////////////////////////////////////////////////
 using System;
-using HomeRecipesCode.HelperClasses;
-using HomeRecipesCode.FactoryClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 using System.Runtime.Serialization;
 
-namespace HomeRecipesCode.EntityClasses
+namespace HomeRecipes_UserRoles_v1.EntityClasses
 {
 	// __LLBLGENPRO_USER_CODE_REGION_START AdditionalNamespaces
 	// __LLBLGENPRO_USER_CODE_REGION_END
@@ -90,7 +90,7 @@ namespace HomeRecipesCode.EntityClasses
 		/// <inheritdoc/>
 		protected override Type LLBLGenProEntityTypeEnumType
 		{
-			get { return typeof(HomeRecipesCode.EntityType); }
+			get { return typeof(HomeRecipes_UserRoles_v1.EntityType); }
 		}
 
 		// __LLBLGENPRO_USER_CODE_REGION_START CustomEntityCode

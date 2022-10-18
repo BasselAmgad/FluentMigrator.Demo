@@ -6,11 +6,11 @@
 // Templates vendor: Solutions Design.
 //////////////////////////////////////////////////////////////
 using System;
-using HomeRecipesCode.FactoryClasses;
-using HomeRecipesCode.RelationClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
+using HomeRecipes_UserRoles_v1.RelationClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.HelperClasses
+namespace HomeRecipes_UserRoles_v1.HelperClasses
 {
 	/// <summary>Singleton implementation of the ModelInfoProvider. This class is the singleton wrapper through which the actual instance is retrieved.</summary>
 	public static class ModelInfoProviderSingleton
@@ -44,7 +44,9 @@ namespace HomeRecipesCode.HelperClasses
 			InitCategoryEntityInfo();
 			InitRecipeEntityInfo();
 			InitRecipeCategoryEntityInfo();
+			InitRoleEntityInfo();
 			InitUserEntityInfo();
+			InitUserRoleEntityInfo();
 			this.BuildInternalStructures();
 		}
 
@@ -78,6 +80,15 @@ namespace HomeRecipesCode.HelperClasses
 			this.AddElementFieldInfo("RecipeCategoryEntity", "RecipeId", typeof(System.Guid), false, true, false, false,  (int)RecipeCategoryFieldIndex.RecipeId, 0, 0, 0);
 		}
 
+		/// <summary>Inits RoleEntity's info objects</summary>
+		private void InitRoleEntityInfo()
+		{
+			this.AddFieldIndexEnumForElementName(typeof(RoleFieldIndex), "RoleEntity");
+			this.AddElementFieldInfo("RoleEntity", "Id", typeof(System.Guid), true, false, false, false,  (int)RoleFieldIndex.Id, 0, 0, 0);
+			this.AddElementFieldInfo("RoleEntity", "IsActive", typeof(System.Boolean), false, false, false, false,  (int)RoleFieldIndex.IsActive, 0, 0, 0);
+			this.AddElementFieldInfo("RoleEntity", "RoleName", typeof(System.String), false, false, false, false,  (int)RoleFieldIndex.RoleName, 255, 0, 0);
+		}
+
 		/// <summary>Inits UserEntity's info objects</summary>
 		private void InitUserEntityInfo()
 		{
@@ -87,6 +98,16 @@ namespace HomeRecipesCode.HelperClasses
 			this.AddElementFieldInfo("UserEntity", "Password", typeof(System.String), false, false, false, false,  (int)UserFieldIndex.Password, 255, 0, 0);
 			this.AddElementFieldInfo("UserEntity", "RefreshToken", typeof(System.String), false, false, false, false,  (int)UserFieldIndex.RefreshToken, 255, 0, 0);
 			this.AddElementFieldInfo("UserEntity", "Username", typeof(System.String), false, false, false, false,  (int)UserFieldIndex.Username, 255, 0, 0);
+		}
+
+		/// <summary>Inits UserRoleEntity's info objects</summary>
+		private void InitUserRoleEntityInfo()
+		{
+			this.AddFieldIndexEnumForElementName(typeof(UserRoleFieldIndex), "UserRoleEntity");
+			this.AddElementFieldInfo("UserRoleEntity", "Id", typeof(System.Int32), true, false, true, false,  (int)UserRoleFieldIndex.Id, 0, 0, 10);
+			this.AddElementFieldInfo("UserRoleEntity", "IsActive", typeof(System.Boolean), false, false, false, false,  (int)UserRoleFieldIndex.IsActive, 0, 0, 0);
+			this.AddElementFieldInfo("UserRoleEntity", "RoleId", typeof(System.Guid), false, true, false, false,  (int)UserRoleFieldIndex.RoleId, 0, 0, 0);
+			this.AddElementFieldInfo("UserRoleEntity", "UserId", typeof(System.Guid), false, true, false, false,  (int)UserRoleFieldIndex.UserId, 0, 0, 0);
 		}
 	}
 }

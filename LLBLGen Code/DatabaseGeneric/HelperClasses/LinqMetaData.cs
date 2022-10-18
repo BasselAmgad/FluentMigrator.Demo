@@ -10,10 +10,10 @@ using System.Linq;
 using System.Collections.Generic;
 using SD.LLBLGen.Pro.LinqSupportClasses;
 using SD.LLBLGen.Pro.ORMSupportClasses;
-using HomeRecipesCode.EntityClasses;
-using HomeRecipesCode.FactoryClasses;
+using HomeRecipes_UserRoles_v1.EntityClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
 
-namespace HomeRecipesCode.Linq
+namespace HomeRecipes_UserRoles_v1.Linq
 {
 	/// <summary>Meta-data class for the construction of Linq queries which are to be executed using LLBLGen Pro code.</summary>
 	public partial class LinqMetaData: ILinqMetaData
@@ -42,16 +42,20 @@ namespace HomeRecipesCode.Linq
 		/// <returns>the requested datasource</returns>
 		public IDataSource GetQueryableForEntity(int typeOfEntity)
 		{
-			switch((HomeRecipesCode.EntityType)typeOfEntity)
+			switch((HomeRecipes_UserRoles_v1.EntityType)typeOfEntity)
 			{
-				case HomeRecipesCode.EntityType.CategoryEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.CategoryEntity:
 					return this.Category;
-				case HomeRecipesCode.EntityType.RecipeEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.RecipeEntity:
 					return this.Recipe;
-				case HomeRecipesCode.EntityType.RecipeCategoryEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.RecipeCategoryEntity:
 					return this.RecipeCategory;
-				case HomeRecipesCode.EntityType.UserEntity:
+				case HomeRecipes_UserRoles_v1.EntityType.RoleEntity:
+					return this.Role;
+				case HomeRecipes_UserRoles_v1.EntityType.UserEntity:
 					return this.User;
+				case HomeRecipes_UserRoles_v1.EntityType.UserRoleEntity:
+					return this.UserRole;
 				default:
 					return null;
 			}
@@ -87,8 +91,14 @@ namespace HomeRecipesCode.Linq
 		/// <summary>returns the datasource to use in a Linq query when targeting RecipeCategoryEntity instances in the database.</summary>
 		public DataSource2<RecipeCategoryEntity> RecipeCategory {	get { return new DataSource2<RecipeCategoryEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
 		
+		/// <summary>returns the datasource to use in a Linq query when targeting RoleEntity instances in the database.</summary>
+		public DataSource2<RoleEntity> Role {	get { return new DataSource2<RoleEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
+		
 		/// <summary>returns the datasource to use in a Linq query when targeting UserEntity instances in the database.</summary>
 		public DataSource2<UserEntity> User {	get { return new DataSource2<UserEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
+		
+		/// <summary>returns the datasource to use in a Linq query when targeting UserRoleEntity instances in the database.</summary>
+		public DataSource2<UserRoleEntity> UserRole {	get { return new DataSource2<UserRoleEntity>(this.AdapterToUse, new ElementCreator(), this.CustomFunctionMappings, this.ContextToUse); } }
 		
 
 

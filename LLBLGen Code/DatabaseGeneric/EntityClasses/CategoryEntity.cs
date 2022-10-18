@@ -10,13 +10,13 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using HomeRecipesCode.HelperClasses;
-using HomeRecipesCode.FactoryClasses;
-using HomeRecipesCode.RelationClasses;
+using HomeRecipes_UserRoles_v1.HelperClasses;
+using HomeRecipes_UserRoles_v1.FactoryClasses;
+using HomeRecipes_UserRoles_v1.RelationClasses;
 
 using SD.LLBLGen.Pro.ORMSupportClasses;
 
-namespace HomeRecipesCode.EntityClasses
+namespace HomeRecipes_UserRoles_v1.EntityClasses
 {
 	// __LLBLGENPRO_USER_CODE_REGION_START AdditionalNamespaces
 	// __LLBLGENPRO_USER_CODE_REGION_END
@@ -47,8 +47,8 @@ namespace HomeRecipesCode.EntityClasses
 		{
 			public CategoryEntityStaticMetaData()
 			{
-				SetEntityCoreInfo("CategoryEntity", InheritanceHierarchyType.None, false, (int)HomeRecipesCode.EntityType.CategoryEntity, typeof(CategoryEntity), typeof(CategoryEntityFactory), false);
-				AddNavigatorMetaData<CategoryEntity, EntityCollection<RecipeCategoryEntity>>("RecipeCategories", a => a._recipeCategories, (a, b) => a._recipeCategories = b, a => a.RecipeCategories, () => new CategoryRelations().RecipeCategoryEntityUsingCategoryId, typeof(RecipeCategoryEntity), (int)HomeRecipesCode.EntityType.RecipeCategoryEntity);
+				SetEntityCoreInfo("CategoryEntity", InheritanceHierarchyType.None, false, (int)HomeRecipes_UserRoles_v1.EntityType.CategoryEntity, typeof(CategoryEntity), typeof(CategoryEntityFactory), false);
+				AddNavigatorMetaData<CategoryEntity, EntityCollection<RecipeCategoryEntity>>("RecipeCategories", a => a._recipeCategories, (a, b) => a._recipeCategories = b, a => a.RecipeCategories, () => new CategoryRelations().RecipeCategoryEntityUsingCategoryId, typeof(RecipeCategoryEntity), (int)HomeRecipes_UserRoles_v1.EntityType.RecipeCategoryEntity);
 			}
 		}
 
@@ -175,7 +175,7 @@ namespace HomeRecipesCode.EntityClasses
 	}
 }
 
-namespace HomeRecipesCode
+namespace HomeRecipes_UserRoles_v1
 {
 	public enum CategoryFieldIndex
 	{
@@ -190,7 +190,7 @@ namespace HomeRecipesCode
 	}
 }
 
-namespace HomeRecipesCode.RelationClasses
+namespace HomeRecipes_UserRoles_v1.RelationClasses
 {
 	/// <summary>Implements the relations factory for the entity: Category. </summary>
 	public partial class CategoryRelations: RelationFactory
