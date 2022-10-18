@@ -12,7 +12,7 @@ namespace HomeRecipes.Migrations.Migrations
         public override void Up()
         {
             Create.Table(TableName.Roles)
-                .WithColumn("id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("id").AsGuid().NotNullable().PrimaryKey()
                 .WithColumn("role").AsString().NotNullable()
                 .WithColumn("is_active").AsBoolean().NotNullable().WithDefaultValue(true);
         }
