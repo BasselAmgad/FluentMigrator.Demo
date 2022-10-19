@@ -7,12 +7,13 @@ namespace Server.Models
         public Guid Id { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-
+        public List<string> UserRoles { get; set; }
         public User(string userName, string password)
         {
             Id = Guid.NewGuid();
             UserName = userName;
             Password = password;
+            UserRoles = new();
         }
     }
 }
