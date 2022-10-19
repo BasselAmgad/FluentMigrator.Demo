@@ -169,8 +169,7 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
     var RoleEntity = await metaData.Role.FirstOrDefaultAsync(r => r.Id == userRolesIds.RoleId);
     var userRole = "Guest";
     if (RoleEntity != null)
-        userRole = RoleEntity.RoleName;
-    Console.WriteLine(userRole);    
+        userRole = RoleEntity.RoleName;   
     var issuer = builder.Configuration["Jwt:Issuer"];
     var audience = builder.Configuration["Jwt:Audience"];
     var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]));
@@ -186,12 +185,9 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Role,userRole),
             }),
-        // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
-        // but since this is a demo app we can extend it to fit our current need
         Expires = DateTime.UtcNow.AddHours(6),
         Audience = audience,
         Issuer = issuer,
-        // here we are adding the encryption alogorithim information which will be used to decrypt our token
         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
     };
     var token = jwtTokenHandler.CreateToken(tokenDescriptor);
