@@ -136,6 +136,7 @@ app.MapPost("/register", async (DataAccessAdapter adapter, [FromBody] User newUs
     if (user != null)
         return Results.BadRequest("username already exists");
     var hasher = new PasswordHasher<User>();
+    // Create User entity
     var userEntity = new UserEntity
     {
         Id = Guid.NewGuid(),
@@ -145,6 +146,10 @@ app.MapPost("/register", async (DataAccessAdapter adapter, [FromBody] User newUs
         IsActive = true,
     };
     await adapter.SaveEntityAsync(userEntity);
+    // Add Guest role to user
+    var roleId = await metaData.Role.FirstOrDefaultAsync(r => r.RoleName == "Guest");
+    var roleEntity = new UserRoleEntity { UserId = userEntity.Id, RoleId = roleId.Id };
+    await adapter.SaveEntityAsync(roleEntity);
     return Results.Ok(userEntity);
 });
 
@@ -152,12 +157,20 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
 {
     var passwordHasher = new PasswordHasher<UserEntity>();
     var metaData = new LinqMetaData(adapter);
-    var userData = await metaData.User.FirstOrDefaultAsync();
+    var userData = await metaData.User.FirstOrDefaultAsync(u => u.Username == user.UserName);
     if (userData is null)
         return Results.NotFound("User does not exist");
     var verifyPassword = passwordHasher.VerifyHashedPassword(userData, userData.Password, user.Password);
     if (verifyPassword == PasswordVerificationResult.Failed)
         return Results.Unauthorized();
+    // Get role of the user
+    var userRoleEntity = new UserRoleEntity{UserId = userData.Id};
+    var userRolesIds = await metaData.UserRole.FirstOrDefaultAsync(u => u.UserId == userData.Id);
+    var RoleEntity = await metaData.Role.FirstOrDefaultAsync(r => r.Id == userRolesIds.RoleId);
+    var userRole = "Guest";
+    if (RoleEntity != null)
+        userRole = RoleEntity.RoleName;
+    Console.WriteLine(userRole);    
     var issuer = builder.Configuration["Jwt:Issuer"];
     var audience = builder.Configuration["Jwt:Audience"];
     var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]));
@@ -171,6 +184,7 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
                 new Claim("Id", userData.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Sub, userData.Username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Role,userRole),
             }),
         // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
         // but since this is a demo app we can extend it to fit our current need
@@ -182,7 +196,7 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
     };
     var token = jwtTokenHandler.CreateToken(tokenDescriptor);
     var jwtToken = jwtTokenHandler.WriteToken(token);
-    return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.Username });
+    return Results.Ok(new AuthenticatedResponse { RefreshToken = "", Token = jwtToken, UserName = userData.Username, UserRole = userRole });
 });
 
 app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
@@ -219,12 +233,17 @@ app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
     return Results.Ok(recipesList);
 });
 
-app.MapGet("/users", [Authorize] async (DataAccessAdapter adapter) =>
+app.MapGet("/users",[Authorize(Roles = "Admin")] async (DataAccessAdapter adapter) =>
 {
-    return Results.NoContent();
+    var metaData = new LinqMetaData(adapter);
+    var userEntities = await metaData.User.ToListAsync();
+    var usersList = new List<string>();
+    foreach (var user in userEntities)
+        usersList.Add(user.Username);
+    return Results.Ok(usersList);
 });
 
-app.MapPut("/users", [Authorize] async (DataAccessAdapter adapter, Guid userId, string ) =>
+app.MapPut("/users", [Authorize(Roles = "Admin")] async (DataAccessAdapter adapter, Guid userId, string newRole) =>
 {
     return Results.NoContent();
 });
@@ -254,7 +273,7 @@ app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
     return Results.Ok(recipe);
 });
 
-app.MapPost("/recipes", [Authorize] async (DataAccessAdapter adapter, Recipe recipe) =>
+app.MapPost("/recipes", [Authorize(Roles = "admin")] async (DataAccessAdapter adapter, Recipe recipe) =>
 {
     var metaData = new LinqMetaData(adapter);
     var newRecipeEntity = new RecipeEntity
