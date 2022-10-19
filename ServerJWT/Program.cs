@@ -233,9 +233,27 @@ app.MapGet("/users",[Authorize(Roles = "Admin")] async (DataAccessAdapter adapte
 {
     var metaData = new LinqMetaData(adapter);
     var userEntities = await metaData.User.ToListAsync();
-    var usersList = new List<string>();
+    var userRolesEntitites = await metaData.UserRole.ToListAsync();
+    var rolesEntities = await metaData.Role.ToListAsync();
+    if (rolesEntities is null) return Results.BadRequest("Could not fetch roles from DB");
+    var usersList = new List<User>();
+    var user1 = new List<string>();
     foreach (var user in userEntities)
-        usersList.Add(user.Username);
+    {
+        var userDTO = new User(user.Id.ToString(), "");
+        var userRolesEntity = userRolesEntitites.FirstOrDefault(u => u.UserId == user.Id);
+        if (userRolesEntity is null)
+        {
+            userDTO.UserRoles.Add("Guest");
+        }
+        else
+        {
+            var userRoles = rolesEntities.Where(r => r.Id == userRolesEntity.RoleId).ToList();
+            foreach (var role in userRoles)
+                userDTO.UserRoles.Add(role.RoleName);
+        }
+        usersList.Add(userDTO);
+    }
     return Results.Ok(usersList);
 });
 
