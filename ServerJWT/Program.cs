@@ -241,17 +241,22 @@ app.MapGet("/users", [Authorize(Roles = "Admin")] async (DataAccessAdapter adapt
     var user1 = new List<string>();
     foreach (var user in userEntities)
     {
-        var userDTO = new User(user.Id.ToString(), "");
-        var userRolesEntity = userRolesEntitites.FirstOrDefault(u => u.UserId == user.Id);
+        var userDTO = new User(user.Username, "");
+        userDTO.Id = user.Id;
+        var userRolesEntity = userRolesEntitites.Where(u => u.UserId == user.Id);
         if (userRolesEntity is null)
         {
             userDTO.UserRoles.Add("Guest");
         }
         else
         {
-            var userRoles = rolesEntities.Where(r => r.Id == userRolesEntity.RoleId).ToList();
-            foreach (var role in userRoles)
-                userDTO.UserRoles.Add(role.RoleName);
+            foreach (var role in userRolesEntity)
+            {
+                var roleTmp = rolesEntities.FirstOrDefault(r => r.Id == role.RoleId);
+                if (roleTmp is null) return Results.BadRequest("Role id doesnt exist in the DB");
+                userDTO.UserRoles.Add(roleTmp.RoleName);
+            }
+
         }
         usersList.Add(userDTO);
     }
@@ -277,9 +282,12 @@ app.MapPut("/users/role", [Authorize(Roles = "Admin")] async (DataAccessAdapter 
     {
         var userRoleEntity = new UserRoleEntity { UserId = user.Id, RoleId = roleId };
         // Add the role if its not already there
-        var userRoleExists = await metaData.UserRole.FirstOrDefaultAsync(ur => ur.RoleId == roleId);
-        if(userRoleExists is null)
+        var userRoleExists = await metaData.UserRole.FirstOrDefaultAsync(ur => ur.RoleId == roleId && ur.UserId == user.Id);
+        if (userRoleExists is null)
+        {
             await adapter.SaveEntityAsync(userRoleEntity);
+        }
+
     }
     return Results.Ok(user);
 });
