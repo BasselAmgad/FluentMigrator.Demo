@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SD.LLBLGen.Pro.DQE.SqlServer;
@@ -164,12 +165,12 @@ app.MapPost("/login", [AllowAnonymous] async (DataAccessAdapter adapter, User us
     if (verifyPassword == PasswordVerificationResult.Failed)
         return Results.Unauthorized();
     // Get role of the user
-    var userRoleEntity = new UserRoleEntity{UserId = userData.Id};
+    var userRoleEntity = new UserRoleEntity { UserId = userData.Id };
     var userRolesIds = await metaData.UserRole.FirstOrDefaultAsync(u => u.UserId == userData.Id);
     var RoleEntity = await metaData.Role.FirstOrDefaultAsync(r => r.Id == userRolesIds.RoleId);
     var userRole = "Guest";
     if (RoleEntity != null)
-        userRole = RoleEntity.RoleName;   
+        userRole = RoleEntity.RoleName;
     var issuer = builder.Configuration["Jwt:Issuer"];
     var audience = builder.Configuration["Jwt:Audience"];
     var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]));
@@ -207,7 +208,7 @@ app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
     var recipesList = new List<Recipe>();
     foreach (var recipe in recipesEntityList)
     {
-        var currentRecipe = new Recipe 
+        var currentRecipe = new Recipe
         {
             Id = recipe.Id,
             Title = recipe.Title,
@@ -217,11 +218,11 @@ app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
         };
         // Get all the ids of the category entities for the current recipe
         var currentRecipeCategories = recipeCategory.Where(r => r.RecipeId == currentRecipe.Id).ToList();
-        foreach(var category in currentRecipeCategories)
+        foreach (var category in currentRecipeCategories)
         {
             // Get the category name from the category table and add it to the current recipe
             var currentCategory = categoriesEntityList.FirstOrDefault(c => c.Id == category.CategoryId);
-            if(currentCategory is not null)
+            if (currentCategory is not null)
                 currentRecipe.Categories.Add(currentCategory.Name);
         }
         recipesList.Add(currentRecipe);
@@ -229,7 +230,7 @@ app.MapGet("/recipes", [Authorize] async (DataAccessAdapter adapter) =>
     return Results.Ok(recipesList);
 });
 
-app.MapGet("/users",[Authorize(Roles = "Admin")] async (DataAccessAdapter adapter) =>
+app.MapGet("/users", [Authorize(Roles = "Admin")] async (DataAccessAdapter adapter) =>
 {
     var metaData = new LinqMetaData(adapter);
     var userEntities = await metaData.User.ToListAsync();
@@ -257,9 +258,30 @@ app.MapGet("/users",[Authorize(Roles = "Admin")] async (DataAccessAdapter adapte
     return Results.Ok(usersList);
 });
 
-app.MapPut("/users", [Authorize(Roles = "Admin")] async (DataAccessAdapter adapter, Guid userId, string newRole) =>
+app.MapPut("/users/role", [Authorize(Roles = "Admin")] async (DataAccessAdapter adapter, User user) =>
 {
-    return Results.NoContent();
+    var metaData = new LinqMetaData(adapter);
+    // Check if the user exists
+    var userExists = metaData.User.FirstOrDefault(u => u.Id == user.Id);
+    if (userExists is null) return Results.NotFound("User ID does not exist");
+    // Check that the roles that are in user exist in DB and get their ID
+    var userRoles = new List<Guid>();
+    foreach (var role in user.UserRoles)
+    {
+        var roleExists = await metaData.Role.FirstOrDefaultAsync(r => r.RoleName == role);
+        if (roleExists is null) return Results.NotFound($"The role '{role}' does not exist.");
+        userRoles.Add(roleExists.Id);
+    }
+    // Add the roles to the userRoles table
+    foreach (var roleId in userRoles)
+    {
+        var userRoleEntity = new UserRoleEntity { UserId = user.Id, RoleId = roleId };
+        // Add the role if its not already there
+        var userRoleExists = await metaData.UserRole.FirstOrDefaultAsync(ur => ur.RoleId == roleId);
+        if(userRoleExists is null)
+            await adapter.SaveEntityAsync(userRoleEntity);
+    }
+    return Results.Ok(user);
 });
 
 app.MapGet("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid id) =>
@@ -334,10 +356,10 @@ app.MapPut("/recipes/{id}", [Authorize] async (DataAccessAdapter adapter, Guid i
         if (categoryExistsInRecipe == null)
             adapter.SaveEntity(new RecipeCategoryEntity { RecipeId = id, CategoryId = categoryExistsInDb.Id });
     }
-    foreach(var elem in recipeCategory)
+    foreach (var elem in recipeCategory)
     {
         var categoryEntity = await metaData.Category.FirstOrDefaultAsync(c => c.Id == elem.CategoryId);
-        if(categoryEntity == null)
+        if (categoryEntity == null)
         {
             await adapter.DeleteEntityAsync(elem);
             return Results.BadRequest($"The with id `{elem.CategoryId}` could not be found in the DB so it was removed.");
@@ -368,7 +390,7 @@ app.MapGet("/categories", [Authorize] async (DataAccessAdapter adapter) =>
     return Results.Ok(categoriesList);
 });
 
-app.MapPost("/categories", [Authorize] async (DataAccessAdapter adapter, string category) =>
+app.MapPost("/categories", [Authorize(Roles = "Admin")] async (DataAccessAdapter adapter, string category) =>
 {
     var metaData = new LinqMetaData(adapter);
     var categoryData = await metaData.Category.FirstOrDefaultAsync(c => c.Name == category);
